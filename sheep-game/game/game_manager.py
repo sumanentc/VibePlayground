@@ -323,12 +323,11 @@ class GameManager:
         
         # Draw clouds with shadows
         for cloud in self.clouds:
-            # Draw shadow first (using a semi-transparent surface)
-            shadow_surface = pygame.Surface((cloud.width, cloud.height // 2), pygame.SRCALPHA)
-            shadow_surface.fill((0, 0, 0, 30))  # Semi-transparent black
-            self.screen.blit(shadow_surface, (cloud.x + SHADOW_OFFSET, cloud.y + SHADOW_OFFSET))
             # Draw cloud
             cloud.draw(self.screen)
+            
+            # Skip shadows for clouds to avoid rectangular artifacts
+            # Clouds look fine without shadows in the sky
         
         # Draw ground line with grass
         pygame.draw.rect(self.screen, GRASS_GREEN, 
@@ -611,7 +610,8 @@ class GameManager:
         # Update existing clouds
         for cloud in self.clouds[:]:
             cloud.update(self.game_speed)
-            if cloud.x + cloud.width < 0:
+            # Use radius * 3 as an approximation of the cloud's total width
+            if cloud.x + cloud.radius * 3 < 0:
                 self.clouds.remove(cloud)
         
         # Generate new clouds

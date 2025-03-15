@@ -1,6 +1,6 @@
 # VibePlayground 🎮✨
 
-### VibePlayground is a collection of fun and creative games generated using vibe coding with WindSurf. This project explores a unique, flow-based approach to coding where the game development process feels natural and intuitive. 🚀
+VibePlayground is a collection of fun and creative games generated using vibe coding with WindSurf. This project explores a unique, flow-based approach to coding where the game development process feels natural and intuitive. 🚀
 
 #### 🕹️ Games in VibePlayground
 1. **Sheep Jump Game 🐑💨** : A simple Chrome dinosaur-style game built with Python and Pygame. Control the sheep and help it jump over obstacles while racking up the highest score! 🎯

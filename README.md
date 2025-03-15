@@ -16,7 +16,7 @@ Features:
 
 #### 🚀 How to Run
 
-- Clone the repository: git clone https://github.com/yourusername/VibePlayground.git
+- Clone the repository: git clone https://github.com/sumanentc/VibePlayground.git
 - Navigate to the game folder: cd VibePlayground/sheep-game
 - Install dependencies: pip install -r requirements.txt
 - Run the game: python main.py

@@ -4,7 +4,7 @@
 const CONFIG = {
     // Game dimensions
     GRID: {
-        WIDTH: 20,      // Width of the grid in blocks
+        WIDTH: 28,      // Width of the grid in blocks
         HEIGHT: 20,     // Height of the grid in blocks
         BLOCK_SIZE: 30, // Size of each block in pixels
         BORDER_WIDTH: 2 // Border width for blocks in pixels

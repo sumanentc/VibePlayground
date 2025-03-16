@@ -9,7 +9,7 @@ A modern implementation of the classic Tetris game built with HTML5, CSS, and Ja
 ## Play Online
 
 You can play the game directly on GitHub Pages:
-[Play Tetris](https://tetris-adr7naolr-dassums-projects.vercel.app/)
+[Play Tetris](https://tetris-mocha-delta.vercel.app/)
 
 ## Table of Contents
 - [Overview](#overview)

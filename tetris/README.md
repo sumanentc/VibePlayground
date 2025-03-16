@@ -4,10 +4,12 @@ A modern implementation of the classic Tetris game built with HTML5, CSS, and Ja
 
 ![Tetris Game Screenshot](./img1.png)
 
+![Tetris Game Screenshot](./img2.png)
+
 ## Play Online
 
 You can play the game directly on GitHub Pages:
-[Play Tetris](https://yourusername.github.io/tetris)
+[Play Tetris](https://tetris-adr7naolr-dassums-projects.vercel.app/)
 
 ## Table of Contents
 - [Overview](#overview)

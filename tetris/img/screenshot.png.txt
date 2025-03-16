@@ -1,0 +1,4 @@
+This is a placeholder for the game screenshot. 
+In a real environment, you would capture an actual screenshot of the game and save it here as 'screenshot.png'.
+
+The README references this image to show how the game looks.

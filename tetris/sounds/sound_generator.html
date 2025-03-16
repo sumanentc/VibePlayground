@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Sound Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 8px 16px;
+            font-size: 16px;
+        }
+        .sound-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tetris Sound Generator</h1>
+    <p>Click the buttons to preview and save sound effects for your Tetris game.</p>
+
+    <div class="sound-group">
+        <h2>Movement Sounds</h2>
+        <button onclick="playMoveSound()">Preview Move Sound</button>
+        <button onclick="generateAndDownload('move')">Download Move Sound</button>
+        
+        <button onclick="playRotateSound()">Preview Rotate Sound</button>
+        <button onclick="generateAndDownload('rotate')">Download Rotate Sound</button>
+    </div>
+
+    <div class="sound-group">
+        <h2>Piece Actions</h2>
+        <button onclick="playDropSound()">Preview Drop Sound</button>
+        <button onclick="generateAndDownload('drop')">Download Drop Sound</button>
+        
+        <button onclick="playLockSound()">Preview Lock Sound</button>
+        <button onclick="generateAndDownload('lock')">Download Lock Sound</button>
+        
+        <button onclick="playHoldSound()">Preview Hold Sound</button>
+        <button onclick="generateAndDownload('hold')">Download Hold Sound</button>
+    </div>
+
+    <div class="sound-group">
+        <h2>Line Clear Sounds</h2>
+        <button onclick="playLineClearSound()">Preview Line Clear Sound</button>
+        <button onclick="generateAndDownload('line_clear')">Download Line Clear Sound</button>
+        
+        <button onclick="playTetrisSound()">Preview Tetris Sound</button>
+        <button onclick="generateAndDownload('tetris')">Download Tetris Sound</button>
+    </div>
+
+    <div class="sound-group">
+        <h2>Game Events</h2>
+        <button onclick="playLevelUpSound()">Preview Level Up Sound</button>
+        <button onclick="generateAndDownload('level_up')">Download Level Up Sound</button>
+        
+        <button onclick="playGameOverSound()">Preview Game Over Sound</button>
+        <button onclick="generateAndDownload('game_over')">Download Game Over Sound</button>
+    </div>
+
+    <script>
+        // Audio context
+        let audioContext;
+        
+        // Initialize audio context on user interaction
+        document.addEventListener('click', initAudio, { once: true });
+        
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('Audio context initialized');
+            }
+        }
+        
+        // Helper function to create and start an oscillator
+        function playOscillator(type, frequency, duration, modulationType = null, modulationFrequency = 0, gainValue = 0.2) {
+            if (!audioContext) {
+                initAudio();
+                if (!audioContext) return;
+            }
+            
+            // Create an oscillator
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            
+            // Create a gain node for volume control
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(gainValue, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+            
+            // Connect oscillator to gain node
+            oscillator.connect(gainNode);
+            
+            // Add frequency modulation if specified
+            if (modulationType && modulationFrequency > 0) {
+                const modulator = audioContext.createOscillator();
+                modulator.type = modulationType;
+                modulator.frequency.setValueAtTime(modulationFrequency, audioContext.currentTime);
+                
+                const modulationGain = audioContext.createGain();
+                modulationGain.gain.setValueAtTime(frequency / 2, audioContext.currentTime);
+                
+                modulator.connect(modulationGain);
+                modulationGain.connect(oscillator.frequency);
+                modulator.start();
+                modulator.stop(audioContext.currentTime + duration);
+            }
+            
+            // Connect to output and play
+            gainNode.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration);
+            
+            return { oscillator, gainNode };
+        }
+        
+        // Move sound (short blip)
+        function playMoveSound() {
+            playOscillator('square', 200, 0.07, null, 0, 0.1);
+        }
+        
+        // Rotate sound (slightly higher pitch)
+        function playRotateSound() {
+            playOscillator('square', 300, 0.1, null, 0, 0.1);
+        }
+        
+        // Drop sound (falling tone)
+        function playDropSound() {
+            const osc = audioContext.createOscillator();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(280, audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.3);
+            
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.3);
+        }
+        
+        // Lock sound (solid thud)
+        function playLockSound() {
+            playOscillator('sine', 150, 0.15, null, 0, 0.25);
+            setTimeout(() => playOscillator('sine', 100, 0.3, null, 0, 0.3), 50);
+        }
+        
+        // Hold sound (quick ascending note)
+        function playHoldSound() {
+            const osc = audioContext.createOscillator();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(200, audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.2);
+            
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.2);
+        }
+        
+        // Line clear sound (sweep up)
+        function playLineClearSound() {
+            const osc = audioContext.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(200, audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+            
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.3);
+        }
+        
+        // Tetris sound (happy little melody)
+        function playTetrisSound() {
+            // Play a sequence of notes
+            let startTime = 0;
+            [400, 500, 600, 700].forEach((freq, i) => {
+                setTimeout(() => {
+                    playOscillator('square', freq, 0.15, null, 0, 0.2);
+                }, startTime);
+                startTime += 100;
+            });
+            
+            // Add a final chord after
+            setTimeout(() => {
+                playOscillator('sine', 400, 0.3, null, 0, 0.15);
+                playOscillator('sine', 500, 0.3, null, 0, 0.15);
+                playOscillator('sine', 600, 0.3, null, 0, 0.15);
+            }, startTime + 50);
+        }
+        
+        // Level up sound (ascending notes with pitch bend)
+        function playLevelUpSound() {
+            // First note
+            setTimeout(() => {
+                const osc = audioContext.createOscillator();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(330, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(350, audioContext.currentTime + 0.2);
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.2);
+            }, 0);
+            
+            // Second note
+            setTimeout(() => {
+                const osc = audioContext.createOscillator();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(392, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(415, audioContext.currentTime + 0.2);
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.2);
+            }, 200);
+            
+            // Third note
+            setTimeout(() => {
+                const osc = audioContext.createOscillator();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(494, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(523, audioContext.currentTime + 0.3);
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.3);
+            }, 400);
+        }
+        
+        // Game over sound (descending sad notes)
+        function playGameOverSound() {
+            // First note
+            setTimeout(() => {
+                const osc = audioContext.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(392, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(349, audioContext.currentTime + 0.3);
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.3);
+            }, 0);
+            
+            // Second note
+            setTimeout(() => {
+                const osc = audioContext.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(330, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(294, audioContext.currentTime + 0.3);
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.3);
+            }, 300);
+            
+            // Final note
+            setTimeout(() => {
+                const osc = audioContext.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(262, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(220, audioContext.currentTime + 0.5);
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.5);
+            }, 600);
+        }
+        
+        // Function to generate and encode an audio buffer
+        function generateAudioBuffer(soundFunction) {
+            return new Promise((resolve) => {
+                // Create offline audio context for rendering
+                const offlineCtx = new OfflineAudioContext(2, 44100 * 2, 44100);
+                
+                // Store the original context
+                const originalContext = audioContext;
+                
+                // Replace the global context temporarily
+                audioContext = offlineCtx;
+                
+                // Call the sound function to set up the audio nodes
+                soundFunction();
+                
+                // Start rendering
+                offlineCtx.startRendering().then((renderedBuffer) => {
+                    // Restore the original context
+                    audioContext = originalContext;
+                    
+                    // Return the rendered buffer
+                    resolve(renderedBuffer);
+                });
+            });
+        }
+        
+        // Function to encode audio buffer to WAV
+        function encodeWAV(audioBuffer) {
+            // Convert stereo to mono if needed
+            const numChannels = audioBuffer.numberOfChannels;
+            const sampleRate = audioBuffer.sampleRate;
+            const format = 1; // PCM
+            const bitDepth = 16;
+            
+            // Create buffer with interleaved samples
+            let interleaved;
+            if (numChannels === 2) {
+                const left = audioBuffer.getChannelData(0);
+                const right = audioBuffer.getChannelData(1);
+                interleaved = new Float32Array(left.length);
+                
+                for (let i = 0; i < left.length; i++) {
+                    interleaved[i] = (left[i] + right[i]) / 2;
+                }
+            } else {
+                interleaved = audioBuffer.getChannelData(0);
+            }
+            
+            // Convert to 16-bit PCM
+            const dataLength = interleaved.length * 2; // 16-bit = 2 bytes per sample
+            const buffer = new ArrayBuffer(44 + dataLength);
+            const view = new DataView(buffer);
+            
+            // Write WAV header
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataLength, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // Format chunk length
+            view.setUint16(20, format, true); // Format type
+            view.setUint16(22, 1, true); // Number of channels (mono)
+            view.setUint32(24, sampleRate, true); // Sample rate
+            view.setUint32(28, sampleRate * 2, true); // Byte rate (SampleRate * NumChannels * BitsPerSample/8)
+            view.setUint16(32, 2, true); // Block align (NumChannels * BitsPerSample/8)
+            view.setUint16(34, bitDepth, true); // Bits per sample
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataLength, true);
+            
+            // Write audio data
+            floatTo16BitPCM(view, 44, interleaved);
+            
+            return buffer;
+        }
+        
+        // Helper to write a string to a DataView
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+        
+        // Helper to convert Float32 audio data to 16-bit PCM
+        function floatTo16BitPCM(output, offset, input) {
+            for (let i = 0; i < input.length; i++, offset += 2) {
+                const s = Math.max(-1, Math.min(1, input[i]));
+                output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            }
+        }
+        
+        // Function to generate sound and download it
+        async function generateAndDownload(soundName) {
+            let soundFunction;
+            
+            // Map sound name to function
+            switch (soundName) {
+                case 'move': soundFunction = playMoveSound; break;
+                case 'rotate': soundFunction = playRotateSound; break;
+                case 'drop': soundFunction = playDropSound; break;
+                case 'lock': soundFunction = playLockSound; break;
+                case 'hold': soundFunction = playHoldSound; break;
+                case 'line_clear': soundFunction = playLineClearSound; break;
+                case 'tetris': soundFunction = playTetrisSound; break;
+                case 'level_up': soundFunction = playLevelUpSound; break;
+                case 'game_over': soundFunction = playGameOverSound; break;
+                default: return;
+            }
+            
+            try {
+                // Generate audio buffer
+                const audioBuffer = await generateAudioBuffer(soundFunction);
+                
+                // Encode to WAV
+                const wavBuffer = encodeWAV(audioBuffer);
+                
+                // Create blob and download
+                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${soundName}.mp3`; // Using .mp3 extension to match your config
+                a.click();
+                
+                // Clean up
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error generating sound:', error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+/* Game container and layout */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #121212;
+    color: #f0f0f0;
+    overflow: hidden;
+}
+
+.container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-area {
+    display: flex;
+    position: relative;
+    max-width: 1200px;
+    width: 100%;
+    height: 90vh;
+}
+
+#game-container {
+    position: relative;
+    flex: 2;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Canvas styling */
+canvas {
+    display: block;
+}
+
+#game-canvas {
+    border: 2px solid #444;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+/* Start screen and Game over overlays */
+#start-screen, #game-over {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    text-align: center;
+}
+
+#start-screen h2, #game-over h2 {
+    font-size: 3rem;
+    color: #0ff;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+#start-screen p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+#game-over .final-score {
+    color: #FFCC00;
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+/* Sidebar */
+.sidebar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    height: 100%;
+    max-width: 300px;
+}
+
+/* Info displays */
+.info-display {
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.info-display h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+    color: #00BFFF;
+}
+
+.preview-container {
+    position: relative;
+    margin: 10px auto;
+    width: 100px;
+    height: 100px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 1px solid #444;
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.btn {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.btn:hover {
+    background-color: #555;
+}
+
+.btn-primary {
+    background-color: #0077CC;
+}
+
+.btn-primary:hover {
+    background-color: #0099FF;
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Particle effects */
+.particle {
+    position: absolute;
+    background-color: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Touch controls for mobile */
+.touch-controls {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    justify-content: space-around;
+    z-index: 8;
+}
+
+.touch-control {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: white;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .game-area {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .sidebar {
+        flex-direction: row;
+        max-width: 100%;
+        height: auto;
+        padding: 10px;
+    }
+    
+    .info-display {
+        margin-bottom: 0;
+        margin-right: 10px;
+        flex: 1;
+    }
+    
+    #game-container {
+        height: 60vh;
+    }
+    
+    .preview-container {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .controls {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+    
+    .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .touch-controls {
+        display: flex;
+    }
+}

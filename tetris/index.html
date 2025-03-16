@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Tetris</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="game-area">
+            <div id="game-container">
+                <canvas id="game-canvas"></canvas>
+                
+                <!-- Touch controls for mobile devices -->
+                <div class="touch-controls">
+                    <div class="touch-control" data-action="left">←</div>
+                    <div class="touch-control" data-action="down">↓</div>
+                    <div class="touch-control" data-action="right">→</div>
+                    <div class="touch-control" data-action="rotate">↻</div>
+                    <div class="touch-control" data-action="hold">H</div>
+                    <div class="touch-control" data-action="hard-drop">⤓</div>
+                </div>
+                
+                <!-- Start screen overlay -->
+                <div id="start-screen">
+                    <h2>2D Tetris</h2>
+                    <p>Click Start Game to begin!</p>
+                    <button id="start-game-btn" class="btn btn-primary">Start Game</button>
+                </div>
+                
+                <!-- Game over overlay -->
+                <div id="game-over" class="hidden">
+                    <h2>Game Over</h2>
+                    <div class="final-score">Score: <span id="final-score-value">0</span></div>
+                    <button id="restart-game-btn" class="btn btn-primary">Play Again</button>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <!-- Score and level info -->
+                <div class="info-display">
+                    <h3>Stats</h3>
+                    <div id="score">Score: <span id="score-value">0</span></div>
+                    <div id="level">Level: <span id="level-value">1</span></div>
+                    <div id="lines">Lines: <span id="lines-value">0</span></div>
+                </div>
+                
+                <!-- Next piece preview -->
+                <div class="info-display">
+                    <h3>Next</h3>
+                    <div class="preview-container">
+                        <canvas id="next-piece-canvas"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Hold piece -->
+                <div class="info-display">
+                    <h3>Hold</h3>
+                    <div class="preview-container">
+                        <canvas id="hold-piece-canvas"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Game controls -->
+                <div class="controls">
+                    <button id="start-button" class="btn btn-primary">Start Game</button>
+                    <button id="pause-button" class="btn">Pause</button>
+                    <button id="mute-button" class="btn">Mute</button>
+                    <button id="restart-sidebar-btn" class="btn">Restart</button>
+                </div>
+                
+                <!-- Game instructions -->
+                <div class="info-display">
+                    <h3>Controls</h3>
+                    <p>← → : Move</p>
+                    <p>↓ : Soft Drop</p>
+                    <p>↑ : Rotate CW</p>
+                    <p>Z : Rotate CCW</p>
+                    <p>Space : Hard Drop</p>
+                    <p>C : Hold Piece</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    
+    <!-- Game scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/tetrominos.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+    
+    <!-- Direct script to handle game start and ensure it works -->
+    <script>
+        // Wait for everything to load and ensure game components are properly initialized
+        window.addEventListener('load', function() {
+            console.log('Window loaded - setting up emergency button handlers');
+            
+            // Make sure components are initialized before setting up button handlers
+            setTimeout(function() {
+                // Direct button handlers
+                document.getElementById('start-game-btn').addEventListener('click', function() {
+                    console.log('Start button clicked from inline script');
+                    // Hide start screen
+                    document.getElementById('start-screen').classList.add('hidden');
+                    // Show game canvas
+                    document.getElementById('game-canvas').classList.remove('hidden');
+                    
+                    // Call game start functions
+                    if (window.gameManager && window.startGameLoop) {
+                        window.gameManager.startGame();
+                        window.startGameLoop();
+                    } else {
+                        console.error('Game components not loaded yet');
+                    }
+                });
+                
+                document.getElementById('start-button').addEventListener('click', function() {
+                    console.log('Sidebar start button clicked from inline script');
+                    // Hide start screen
+                    document.getElementById('start-screen').classList.add('hidden');
+                    // Show game canvas
+                    document.getElementById('game-canvas').classList.remove('hidden');
+                    
+                    // Call game start functions
+                    if (window.gameManager && window.startGameLoop) {
+                        window.gameManager.startGame();
+                        window.startGameLoop();
+                    } else {
+                        console.error('Game components not loaded yet');
+                    }
+                });
+                
+                document.getElementById('restart-game-btn').addEventListener('click', function() {
+                    console.log('Restart button clicked from inline script');
+                    document.getElementById('game-over').classList.add('hidden');
+                    
+                    if (window.gameManager && window.startGameLoop) {
+                        window.gameManager.resetGameState();
+                        window.gameManager.startGame();
+                        if (!window.isRunning) {
+                            window.startGameLoop();
+                        }
+                    }
+                });
+                
+                document.getElementById('restart-sidebar-btn').addEventListener('click', function() {
+                    console.log('Sidebar restart button clicked from inline script');
+                    document.getElementById('game-over').classList.add('hidden');
+                    
+                    if (window.gameManager && window.startGameLoop) {
+                        window.gameManager.resetGameState();
+                        window.gameManager.startGame();
+                        if (!window.isRunning) {
+                            window.startGameLoop();
+                        }
+                    }
+                });
+                
+                // Add a direct event listener for the pause button
+                document.getElementById('pause-button').addEventListener('click', function() {
+                    console.log('Pause button clicked from inline script');
+                    if (window.gameManager) {
+                        window.gameManager.togglePause();
+                        // Update button text based on game state
+                        this.textContent = window.gameManager.isPaused ? 'Resume' : 'Pause';
+                    }
+                });
+            }, 500); // Small delay to ensure all components are initialized
+        });
+    </script>
+    
+    <!-- Direct fix for restart buttons -->
+    <script>
+        window.addEventListener('load', function() {
+            console.log('Direct restart button fix loaded');
+            
+            // Function to handle restart
+            function restartGame() {
+                console.log('Direct restart handler called');
+                
+                // Hide game over screen
+                document.getElementById('game-over').classList.add('hidden');
+                
+                // Show game canvas
+                document.getElementById('game-canvas').classList.remove('hidden');
+                
+                // Reset and start game if gameManager exists
+                if (window.gameManager) {
+                    window.gameManager.resetGameState();
+                    window.gameManager.isPaused = false;
+                    window.gameManager.startGame();
+                    console.log('Game restarted successfully');
+                } else {
+                    console.error('gameManager not found');
+                }
+            }
+            
+            // Add event listeners to all restart buttons
+            const restartButtons = [
+                document.getElementById('restart-sidebar-btn'),
+                document.getElementById('restart-game-btn')
+            ];
+            
+            restartButtons.forEach(function(button) {
+                if (button) {
+                    console.log('Found restart button:', button.id);
+                    
+                    // Remove any existing event listeners
+                    const newButton = button.cloneNode(true);
+                    button.parentNode.replaceChild(newButton, button);
+                    
+                    // Add fresh event listener
+                    newButton.addEventListener('click', function(e) {
+                        console.log('Restart button clicked:', this.id);
+                        e.stopPropagation(); // Prevent event bubbling
+                        restartGame();
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

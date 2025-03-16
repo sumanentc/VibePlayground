@@ -1,241 +1,146 @@
 /**
- * Audio manager for 2D Tetris
- * Handles sound effects and background music using Howler.js
+ * Audio manager for Tetris game
+ * Uses either Web Audio API directly via the DirectSound system
+ * for maximum compatibility across browsers
  */
 class AudioManager {
-    constructor() {
+    constructor(config) {
+        this.config = config;
         this.sounds = {};
         this.music = null;
-        this.isMuted = false;
+        this.musicEnabled = false;
+        this.soundsEnabled = true;
+        
+        // Reference to our sound generator
+        this.soundGenerator = null;
+        
+        // Set up audio context if available
         this.initialized = false;
         
-        // Initialize sounds when the page loads
-        this.initialize();
+        // Initialize sound system
+        this.initSounds();
     }
     
     /**
-     * Initialize audio system
+     * Initialize sounds
      */
-    initialize() {
-        // Set global Howler settings
-        Howler.volume(CONFIG.AUDIO.MASTER_VOLUME);
-        Howler.autoUnlock = true;
-        
-        // Try to load sounds (with fallbacks)
-        this.loadSounds();
-    }
-    
-    /**
-     * Load all game sounds
-     */
-    loadSounds() {
-        try {
-            // Load sound effects
-            this.sounds = {
-                move: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.MOVE],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: move', err)
-                }),
-                rotate: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.ROTATE],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: rotate', err)
-                }),
-                drop: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.DROP],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: drop', err)
-                }),
-                lineClear: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.LINE_CLEAR],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: lineClear', err)
-                }),
-                singleClear: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.SINGLE_CLEAR],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: singleClear', err)
-                }),
-                doubleClear: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.DOUBLE_CLEAR],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: doubleClear', err)
-                }),
-                tripleClear: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.TRIPLE_CLEAR],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: tripleClear', err)
-                }),
-                tetris: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.TETRIS],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: tetris', err)
-                }),
-                levelUp: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.LEVEL_UP],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: levelUp', err)
-                }),
-                gameOver: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.GAME_OVER],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: gameOver', err)
-                }),
-                lock: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.LOCK],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: lock', err)
-                }),
-                hold: new Howl({
-                    src: ['sounds/' + CONFIG.AUDIO.SOUNDS.HOLD],
-                    volume: CONFIG.AUDIO.SOUND_EFFECTS_VOLUME,
-                    onloaderror: (id, err) => console.log('Error loading sound: hold', err)
-                })
-            };
-            
-            // Load background music
-            this.music = new Howl({
-                src: ['sounds/' + CONFIG.AUDIO.MUSIC],
-                loop: true,
-                volume: CONFIG.AUDIO.MUSIC_VOLUME,
-                onloaderror: (id, err) => console.log('Error loading background music', err)
-            });
-            
-            this.initialized = true;
-            console.log('Audio system initialized successfully');
-        } catch (error) {
-            console.error('Failed to initialize audio system:', error);
-            this.createDummySounds();
+    initSounds() {
+        // Use the DirectSound system for all sound effects
+        // This is a more reliable approach that works in all browsers
+        if (window.DirectSound) {
+            this.soundGenerator = window.DirectSound;
+            console.log('Direct Sound system detected and ready');
+        } else {
+            console.warn('DirectSound not available, no sound effects will play');
         }
-    }
-    
-    /**
-     * Create dummy sounds if loading fails
-     */
-    createDummySounds() {
-        console.log('Using dummy sounds - no audio will play');
-        
-        // Create dummy sound methods
-        const dummySound = {
-            play: function() { return this; },
-            stop: function() { return this; },
-            playing: function() { return false; }
-        };
-        
-        // Set up dummy sound effects
-        this.sounds = {
-            move: dummySound,
-            rotate: dummySound,
-            drop: dummySound,
-            lineClear: dummySound,
-            singleClear: dummySound,
-            doubleClear: dummySound,
-            tripleClear: dummySound,
-            tetris: dummySound,
-            levelUp: dummySound,
-            gameOver: dummySound,
-            lock: dummySound,
-            hold: dummySound
-        };
-        
-        // Create dummy music
-        this.music = {
-            play: function() { return this; },
-            stop: function() { return this; },
-            playing: function() { return false; }
-        };
-        
-        this.initialized = true;
     }
     
     /**
      * Play a sound effect
-     * @param {String} soundName - Name of the sound to play
+     * @param {string} sound - Name of the sound effect to play
      */
-    play(soundName) {
-        if (this.isMuted || !this.initialized || !this.sounds[soundName]) {
-            return;
-        }
+    play(sound) {
+        if (!this.soundsEnabled) return;
         
         try {
-            this.sounds[soundName].play();
+            if (this.soundGenerator) {
+                this.soundGenerator.play(sound);
+            }
         } catch (error) {
-            console.error('Error playing sound:', soundName, error);
+            console.error(`Error playing sound ${sound}:`, error);
+        }
+    }
+    
+    /**
+     * Play sound for line clear based on number of lines
+     * @param {number} lines - Number of lines cleared
+     */
+    playLineClear(lines) {
+        if (!this.soundsEnabled) return;
+        
+        try {
+            if (this.soundGenerator) {
+                this.soundGenerator.playLineClear(lines);
+            }
+        } catch (error) {
+            console.error(`Error playing line clear sound:`, error);
         }
     }
     
     /**
      * Play background music
+     * For backward compatibility with the game engine
      */
     playMusic() {
-        if (this.isMuted || !this.initialized || !this.music) {
-            return;
-        }
-        
         try {
-            if (!this.music.playing()) {
-                this.music.play();
-            }
+            // Do NOT try to auto-play music as it will be blocked by browser policies
+            // Just update internal state for compatibility with game engine
+            // User will need to click the music button to actually start music
+            this.musicEnabled = true;
+            console.log('Music enabled (but not auto-playing due to browser restrictions)');
         } catch (error) {
-            console.error('Error playing music:', error);
+            console.error('Error updating music state:', error);
         }
     }
     
     /**
      * Stop background music
+     * For backward compatibility with the game engine
      */
     stopMusic() {
-        if (!this.initialized || !this.music) {
-            return;
-        }
-        
         try {
-            if (this.music.playing()) {
-                this.music.stop();
-            }
+            const music = document.getElementById('background-music');
+            if (!music) return;
+            
+            music.pause();
+            this.musicEnabled = false;
+            
+            console.log('Background music stopped');
         } catch (error) {
             console.error('Error stopping music:', error);
         }
     }
     
     /**
-     * Toggle mute state
-     * @returns {Boolean} - New mute state
+     * Toggle background music on/off
+     * @returns {boolean} - New state of music
      */
-    toggleMute() {
-        this.isMuted = !this.isMuted;
-        
+    toggleMusic() {
         try {
-            if (this.isMuted) {
-                Howler.volume(0);
-                this.stopMusic();
+            const music = document.getElementById('background-music');
+            if (!music) return false;
+            
+            this.musicEnabled = !this.musicEnabled;
+            
+            if (this.musicEnabled) {
+                music.play().catch(error => {
+                    console.error('Error starting music (probably due to autoplay restrictions):', error);
+                    // We'll need user interaction to play music in modern browsers
+                    this.musicEnabled = false;
+                });
             } else {
-                Howler.volume(CONFIG.AUDIO.MASTER_VOLUME);
-                this.playMusic();
+                music.pause();
             }
+            
+            return this.musicEnabled;
         } catch (error) {
-            console.error('Error toggling mute:', error);
+            console.error('Error toggling music:', error);
+            return false;
         }
-        
-        return this.isMuted;
     }
     
     /**
-     * Update music parameters based on level
-     * @param {Number} level - Current game level
+     * Toggle sound effects on/off
+     * @returns {boolean} - New state of sound effects
      */
-    updateMusicForLevel(level) {
-        if (this.isMuted || !this.initialized || !this.music) {
-            return;
+    toggleSounds() {
+        this.soundsEnabled = !this.soundsEnabled;
+        if (this.soundGenerator) {
+            this.soundGenerator.toggleMute();
         }
-        
-        try {
-            // Increase music speed based on level
-            const rate = 1.0 + (level - 1) * 0.05; // Increase by 5% per level
-            this.music.rate(Math.min(1.5, rate)); // Cap at 1.5x speed
-        } catch (error) {
-            console.error('Error updating music for level:', error);
-        }
+        return this.soundsEnabled;
     }
 }
+
+// Export
+window.AudioManager = AudioManager;

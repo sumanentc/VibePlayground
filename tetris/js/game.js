@@ -145,9 +145,12 @@ class GameManager {
             renderer.render(this.grid, this.currentTetromino, this.ghostY);
         }
         
-        // Start the music if audio manager is available
+        // Set music state without autoplay (to avoid browser restrictions)
+        // User will control music with the dedicated UI buttons
         if (typeof audioManager !== 'undefined') {
-            audioManager.playMusic();
+            // We no longer auto-start music due to browser restrictions
+            // Instead, we just ensure the audio manager is properly initialized
+            console.log('Audio manager initialized, music can be controlled via UI');
         }
         
         console.log('Game state reset successfully');

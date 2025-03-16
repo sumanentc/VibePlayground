@@ -4,7 +4,7 @@
 const CONFIG = {
     // Game dimensions
     GRID: {
-        WIDTH: 10,      // Width of the grid in blocks
+        WIDTH: 20,      // Width of the grid in blocks
         HEIGHT: 20,     // Height of the grid in blocks
         BLOCK_SIZE: 30, // Size of each block in pixels
         BORDER_WIDTH: 2 // Border width for blocks in pixels
@@ -78,7 +78,7 @@ const CONFIG = {
             LOCK: 'lock.mp3',
             HOLD: 'hold.mp3'
         },
-        MUSIC: 'background_music.mp3'
+        MUSIC: 'background_music.mp3' // Update the background music file path
     },
     
     // Level requirements and features

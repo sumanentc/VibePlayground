@@ -5,6 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Tetris</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            position: relative;
+        }
+        #game-canvas {
+            border: 2px solid #333;
+        }
+        #score-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            text-align: right;
+        }
+        .audio-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .audio-controls button {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .audio-controls button:hover {
+            background: #666;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -27,6 +75,11 @@
                     <h2>2D Tetris</h2>
                     <p>Click Start Game to begin!</p>
                     <button id="start-game-btn" class="btn btn-primary">Start Game</button>
+                    <div style="margin-top: 20px;">
+                        <button id="enable-audio-btn" class="btn" style="background-color: #4CAF50; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;" onclick="enableAllAudio(); this.textContent = 'Audio Enabled ✓'; this.style.backgroundColor = '#45a049';">▶ Enable Audio</button>
+                        <button id="toggle-music-btn" class="btn" style="background-color: #2196F3; color: white; padding: 10px 20px; margin-left: 10px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;" onclick="toggleBackgroundMusic(this);">▶ Play Music</button>
+                    </div>
+                    <p style="font-size: 12px; margin-top: 10px;">Click the buttons above to control game audio</p>
                 </div>
                 
                 <!-- Game over overlay -->
@@ -34,6 +87,11 @@
                     <h2>Game Over</h2>
                     <div class="final-score">Score: <span id="final-score-value">0</span></div>
                     <button id="restart-game-btn" class="btn btn-primary">Play Again</button>
+                </div>
+                
+                <div class="audio-controls">
+                    <button id="music-toggle" onclick="toggleBackgroundMusic(this)">Play Music</button>
+                    <button id="sound-toggle" onclick="toggleSoundEffects()">Toggle Sounds</button>
                 </div>
             </div>
             
@@ -84,11 +142,19 @@
         </div>
     </div>
 
-    <!-- Libraries -->
+    <!-- Add direct audio element for background music -->
+    <audio id="background-music" loop preload="auto">
+        <source src="https://archive.org/download/TetrisThemeMusic/Tetris.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <!-- External CDN scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     
     <!-- Game scripts -->
     <script src="js/config.js"></script>
+    <script src="js/direct-sound.js"></script>
+    <script src="js/sound-generator.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/tetrominos.js"></script>
     <script src="js/audio.js"></script>
@@ -97,9 +163,118 @@
     <script src="js/game.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/start-fix.js"></script>
     
     <!-- Direct script to handle game start and ensure it works -->
     <script>
+        // Function to enable all audio
+        function enableAllAudio() {
+            // Initialize DirectSound system
+            if (window.DirectSound) {
+                window.DirectSound.init();
+                console.log('DirectSound system initialized');
+            }
+            
+            // Create a small audio context to ensure Web Audio API is unlocked
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create and play a silent buffer to unlock the audio context
+            const buffer = audioContext.createBuffer(1, 1, 22050);
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioContext.destination);
+            source.start(0);
+            
+            console.log('Audio unlocked by user interaction');
+            
+            // Ensure that game can play sounds right away by forcing a sound to play
+            setTimeout(() => {
+                if (window.DirectSound) {
+                    window.DirectSound.play('move');
+                }
+            }, 100);
+            
+            // Enable music button
+            const musicBtns = [
+                document.getElementById('toggle-music-btn'),
+                document.getElementById('music-toggle')
+            ];
+            
+            musicBtns.forEach(btn => {
+                if (btn) btn.disabled = false;
+            });
+        }
+        
+        // Function to toggle background music
+        function toggleBackgroundMusic(button) {
+            const bgMusic = document.getElementById('background-music');
+            if (!bgMusic) return;
+            
+            if (bgMusic.paused) {
+                // Try to play music
+                bgMusic.volume = 0.5;
+                bgMusic.play()
+                    .then(() => {
+                        button.textContent = '⏸ Pause Music';
+                        button.style.backgroundColor = '#f44336';
+                        console.log('Background music playing');
+                        
+                        // Also ensure the AudioManager knows music is enabled
+                        if (window.audioManager) {
+                            window.audioManager.musicEnabled = true;
+                        }
+                        
+                        // Sync all music toggle buttons
+                        const otherMusicBtn = button.id === 'toggle-music-btn' ? 
+                            document.getElementById('music-toggle') : 
+                            document.getElementById('toggle-music-btn');
+                            
+                        if (otherMusicBtn) {
+                            otherMusicBtn.textContent = '⏸ Pause Music';
+                        }
+                    })
+                    .catch(e => {
+                        console.error('Music still blocked by browser:', e);
+                        button.textContent = '❌ Music Blocked';
+                        setTimeout(() => {
+                            button.textContent = '▶ Play Music';
+                        }, 2000);
+                    });
+            } else {
+                // Pause music
+                bgMusic.pause();
+                button.textContent = '▶ Play Music';
+                button.style.backgroundColor = button.id === 'toggle-music-btn' ? '#2196F3' : '';
+                console.log('Background music paused');
+                
+                // Update AudioManager state
+                if (window.audioManager) {
+                    window.audioManager.musicEnabled = false;
+                }
+                
+                // Sync all music toggle buttons
+                const otherMusicBtn = button.id === 'toggle-music-btn' ? 
+                    document.getElementById('music-toggle') : 
+                    document.getElementById('toggle-music-btn');
+                    
+                if (otherMusicBtn) {
+                    otherMusicBtn.textContent = '▶ Play Music';
+                }
+            }
+        }
+        
+        // Function to toggle sound effects
+        function toggleSoundEffects() {
+            if (window.audioManager) {
+                const muted = window.audioManager.toggleSounds();
+                const button = document.getElementById('sound-toggle');
+                if (button) {
+                    button.textContent = muted ? 'Enable Sounds' : 'Disable Sounds';
+                }
+                console.log('Sound effects toggled:', muted ? 'off' : 'on');
+            }
+        }
+        
         // Wait for everything to load and ensure game components are properly initialized
         window.addEventListener('load', function() {
             console.log('Window loaded - setting up emergency button handlers');

@@ -16,26 +16,21 @@ function generateTone(filename, frequency, duration, volume = 0.5, sampleRate = 
         // Calculate sine value for this sample
         const t = i / sampleRate;
         
-        // Apply simple ADSR envelope for a more natural sound
+        // Apply ADSR envelope
         let envelopeValue = 1.0;
-        const attackTime = 0.01; // 10ms
+        const attackTime = 0.01; // 10ms - quick attack for responsive feedback
         const decayTime = 0.05; // 50ms
         const sustainLevel = 0.7;
-        const releaseTime = 0.2; // 200ms
+        const releaseTime = 0.15; // 150ms
         
         if (t < attackTime) {
             envelopeValue = t / attackTime; // Linear attack
         } else if (t < attackTime + decayTime) {
-            envelopeValue = 1.0 - (1.0 - sustainLevel) * (t - attackTime) / decayTime; // Linear decay
+            envelopeValue = 1.0 - (1.0 - sustainLevel) * (t - attackTime) / decayTime;
         } else if (t < duration - releaseTime) {
-            envelopeValue = sustainLevel; // Sustain
+            envelopeValue = sustainLevel;
         } else {
-            envelopeValue = sustainLevel * (1.0 - (t - (duration - releaseTime)) / releaseTime); // Linear release
-        }
-        
-        // Apply tremolo for some sounds (subtle variation in amplitude)
-        if (filename.includes('tetris') || filename.includes('level_up')) {
-            envelopeValue *= 1.0 + 0.2 * Math.sin(2 * Math.PI * 8 * t);
+            envelopeValue = sustainLevel * (1.0 - (t - (duration - releaseTime)) / releaseTime);
         }
         
         // Calculate the basic tone value
@@ -43,45 +38,30 @@ function generateTone(filename, frequency, duration, volume = 0.5, sampleRate = 
         
         // Add harmonics for richness (different for each sound type)
         if (filename.includes('move')) {
-            // Add a bit of higher harmonic
-            value += 0.3 * Math.sin(2 * Math.PI * frequency * 2 * t);
+            // Left/right movement - quick arcade bleep with slight pitch up
+            value = Math.sin(2 * Math.PI * (frequency + t * 80) * t); // Rising pitch
+            value += 0.3 * Math.sin(2 * Math.PI * frequency * 2 * t); // Higher harmonic
         } else if (filename.includes('rotate')) {
-            // Add a bit of higher harmonic with slight detuning
-            value += 0.2 * Math.sin(2 * Math.PI * frequency * 1.5 * t);
-            value += 0.1 * Math.sin(2 * Math.PI * frequency * 2.01 * t);
-        } else if (filename.includes('drop') || filename.includes('lock')) {
+            // Rotation sound - arcade-style "blip" with harmonics
+            value = Math.sin(2 * Math.PI * frequency * t);
+            value += 0.4 * Math.sin(2 * Math.PI * frequency * 1.5 * t); // Perfect fifth
+            value += 0.2 * Math.sin(2 * Math.PI * frequency * 2 * t); // Octave
+            
+            // Add slight pitch bend
+            const pitchBend = 50; // Hz
+            value += 0.3 * Math.sin(2 * Math.PI * (frequency + pitchBend * t) * t);
+        } else if (filename.includes('drop')) {
             // Add sub-bass and slight distortion
             value += 0.4 * Math.sin(2 * Math.PI * frequency * 0.5 * t);
             value = Math.tanh(value * 1.2) * 0.8; // Soft clipping for subtle distortion
-        } else if (filename.includes('line_clear')) {
+        } else if (filename.includes('lock')) {
+            // Add sub-bass and slight distortion
+            value += 0.4 * Math.sin(2 * Math.PI * frequency * 0.5 * t);
+            value = Math.tanh(value * 1.2) * 0.8; // Soft clipping for subtle distortion
+        } else if (filename.includes('clear')) {
             // Add chord-like harmonics
             value += 0.3 * Math.sin(2 * Math.PI * frequency * 1.25 * t); // Major third
             value += 0.2 * Math.sin(2 * Math.PI * frequency * 1.5 * t);  // Perfect fifth
-        } else if (filename.includes('single_clear')) {
-            // Single line clear - simple rising tone
-            value = Math.sin(2 * Math.PI * (frequency + t * 200) * t);
-        } else if (filename.includes('double_clear')) {
-            // Double line clear - two-note rising tone
-            value = Math.sin(2 * Math.PI * (frequency + t * 300) * t) * 0.7;
-            value += Math.sin(2 * Math.PI * (frequency * 1.5 + t * 300) * t) * 0.5;
-        } else if (filename.includes('triple_clear')) {
-            // Triple line clear - three-note arpeggio
-            const arpFreq = t < duration/3 ? frequency : 
-                          (t < 2*duration/3 ? frequency * 1.25 : frequency * 1.5);
-            value = Math.sin(2 * Math.PI * arpFreq * t);
-            // Add some chorus
-            value += 0.2 * Math.sin(2 * Math.PI * arpFreq * 1.01 * t);
-        } else if (filename.includes('tetris')) {
-            // Tetris sound - chord with vibrato
-            value = Math.sin(2 * Math.PI * frequency * t);
-            value += 0.5 * Math.sin(2 * Math.PI * frequency * 1.25 * t);
-            value += 0.3 * Math.sin(2 * Math.PI * frequency * 1.5 * t);
-            
-            // Add vibrato (frequency modulation)
-            const vibratoDepth = 15; // Hz
-            const vibratoRate = 8;  // Hz
-            const vibrato = vibratoDepth * Math.sin(2 * Math.PI * vibratoRate * t);
-            value += 0.5 * Math.sin(2 * Math.PI * (frequency + vibrato) * t);
         } else if (filename.includes('level_up')) {
             // Level up - ascending arpeggio with echo
             const time = t % (duration / 4);
@@ -121,44 +101,176 @@ function generateTone(filename, frequency, duration, volume = 0.5, sampleRate = 
         buffer.writeInt16LE(sample, i * 4 + 2);
     }
     
-    // Create WAV header
-    const header = Buffer.alloc(44);
+    // Write to file
+    fs.writeFileSync(filename, buffer);
+    console.log(`Created ${filename}`);
+}
+
+// Function to generate a simple background music loop
+function generateBackgroundMusic(filename, duration = 8, volume = 0.4, sampleRate = 44100) {
+    console.log(`Generating ${filename} with duration ${duration}s`);
     
-    // RIFF chunk descriptor
-    header.write('RIFF', 0);
-    header.writeUInt32LE(36 + buffer.length, 4);
-    header.write('WAVE', 8);
+    // Calculate total samples
+    const totalSamples = Math.floor(duration * sampleRate);
     
-    // FMT sub-chunk
-    header.write('fmt ', 12);
-    header.writeUInt32LE(16, 16); // Sub-chunk size
-    header.writeUInt16LE(1, 20); // PCM format
-    header.writeUInt16LE(2, 22); // Stereo
-    header.writeUInt32LE(sampleRate, 24); // Sample rate
-    header.writeUInt32LE(sampleRate * 4, 28); // Byte rate
-    header.writeUInt16LE(4, 32); // Block align
-    header.writeUInt16LE(16, 34); // Bits per sample
+    // Create buffer for stereo 16-bit PCM
+    const buffer = Buffer.alloc(totalSamples * 4); // 2 bytes per sample, 2 channels
     
-    // Data sub-chunk
-    header.write('data', 36);
-    header.writeUInt32LE(buffer.length, 40);
+    // Tetris theme inspired melody (simplified)
+    const melody = [
+        { note: 'E5', duration: 0.25 },
+        { note: 'B4', duration: 0.125 },
+        { note: 'C5', duration: 0.125 },
+        { note: 'D5', duration: 0.25 },
+        { note: 'C5', duration: 0.125 },
+        { note: 'B4', duration: 0.125 },
+        { note: 'A4', duration: 0.25 },
+        { note: 'A4', duration: 0.125 },
+        { note: 'C5', duration: 0.125 },
+        { note: 'E5', duration: 0.25 },
+        { note: 'D5', duration: 0.125 },
+        { note: 'C5', duration: 0.125 },
+        { note: 'B4', duration: 0.375 },
+        { note: 'C5', duration: 0.125 },
+        { note: 'D5', duration: 0.25 },
+        { note: 'E5', duration: 0.25 },
+        { note: 'C5', duration: 0.25 },
+        { note: 'A4', duration: 0.25 },
+        { note: 'A4', duration: 0.375 },
+        { note: 'rest', duration: 0.125 }
+    ];
     
-    // Combine header and data
-    const wavBuffer = Buffer.concat([header, buffer]);
+    // Convert note names to frequencies
+    const noteToFreq = {
+        'A4': 440.00,
+        'B4': 493.88,
+        'C5': 523.25,
+        'D5': 587.33,
+        'E5': 659.25,
+        'F5': 698.46,
+        'G5': 783.99,
+        'rest': 0
+    };
+    
+    // Generate the melody with simple polyphony
+    let currentTime = 0;
+    for (let i = 0; i < totalSamples; i++) {
+        const t = i / sampleRate;
+        
+        // Find current note in the melody
+        let noteValue = 0;
+        let melodyIndex = 0;
+        let noteTime = 0;
+        
+        while (melodyIndex < melody.length) {
+            const noteDuration = melody[melodyIndex].duration;
+            if (t >= noteTime && t < noteTime + noteDuration) {
+                // We're in this note's time window
+                const note = melody[melodyIndex].note;
+                if (note !== 'rest') {
+                    const freq = noteToFreq[note];
+                    const notePosition = (t - noteTime) / noteDuration;
+                    
+                    // Note envelope
+                    let envelope = 1.0;
+                    if (notePosition < 0.05) {
+                        envelope = notePosition / 0.05; // Attack
+                    } else if (notePosition > 0.8) {
+                        envelope = (1.0 - notePosition) / 0.2; // Release
+                    }
+                    
+                    // Add the note with slight vibrato
+                    const vibrato = 4 * Math.sin(2 * Math.PI * 5 * t);
+                    noteValue += envelope * 0.5 * Math.sin(2 * Math.PI * (freq + vibrato) * t);
+                    
+                    // Add harmonics
+                    noteValue += envelope * 0.25 * Math.sin(2 * Math.PI * freq * 2 * t);
+                    noteValue += envelope * 0.15 * Math.sin(2 * Math.PI * freq * 3 * t);
+                }
+                break;
+            }
+            noteTime += noteDuration;
+            melodyIndex++;
+            
+            // Loop the melody
+            if (melodyIndex >= melody.length) {
+                melodyIndex = 0;
+                noteTime = 0;
+            }
+        }
+        
+        // Add a simple bass line
+        const bassLine = [
+            { note: 'E3', duration: 0.5 },
+            { note: 'E3', duration: 0.5 },
+            { note: 'A3', duration: 0.5 },
+            { note: 'A3', duration: 0.5 },
+        ];
+        
+        // Bass frequencies (one octave lower)
+        const bassToFreq = {
+            'E3': 164.81,
+            'A3': 220.00
+        };
+        
+        // Add bass note
+        let bassTime = 0;
+        let bassIndex = 0;
+        while (bassIndex < bassLine.length) {
+            const bassDuration = bassLine[bassIndex].duration;
+            if (t >= bassTime && t < bassTime + bassDuration) {
+                const bassNote = bassLine[bassIndex].note;
+                const bassFreq = bassToFreq[bassNote];
+                const bassPosition = (t - bassTime) / bassDuration;
+                
+                // Bass envelope
+                let envelope = 0.8;
+                if (bassPosition < 0.1) {
+                    envelope = bassPosition / 0.1; // Attack
+                } else if (bassPosition > 0.7) {
+                    envelope = (1.0 - bassPosition) / 0.3; // Release
+                }
+                
+                noteValue += envelope * 0.3 * Math.sin(2 * Math.PI * bassFreq * t);
+                break;
+            }
+            bassTime += bassDuration;
+            bassIndex++;
+            
+            // Loop the bass line
+            if (bassIndex >= bassLine.length) {
+                bassIndex = 0;
+                bassTime = 0;
+            }
+        }
+        
+        // Apply volume
+        noteValue *= volume;
+        
+        // Prevent clipping
+        noteValue = Math.max(-0.9, Math.min(0.9, noteValue));
+        
+        // Convert to 16-bit
+        const sample = Math.floor(noteValue * 32767);
+        
+        // Write to buffer (stereo)
+        buffer.writeInt16LE(sample, i * 4);
+        buffer.writeInt16LE(sample, i * 4 + 2);
+    }
     
     // Write to file
-    fs.writeFileSync(filename, wavBuffer);
+    fs.writeFileSync(filename, buffer);
     console.log(`Created ${filename}`);
 }
 
 // Generate sound effects
-console.log("Generating Tetris sound effects with more catchy tones...");
+console.log("Generating Tetris sound effects with arcade-style tones...");
 
-// Movement sounds - more electronic and responsive
-generateTone('move.mp3', 220, 0.08, 0.3); // Quick, precise tick sound
-generateTone('rotate.mp3', 330, 0.1, 0.35); // Higher, slightly longer
+// Movement sounds - classic arcade style
+generateTone('move.mp3', 330, 0.06, 0.4); // Higher frequency for left/right movements
+generateTone('rotate.mp3', 440, 0.08, 0.45); // Distinct rotation sound
 
-// Action sounds - more impactful
+// Action sounds - impactful
 generateTone('drop.mp3', 180, 0.25, 0.5); // Deeper, more satisfying drop
 generateTone('lock.mp3', 140, 0.2, 0.4); // Solid, defined thud
 generateTone('hold.mp3', 440, 0.15, 0.4); // Brighter, more distinct
@@ -176,4 +288,7 @@ generateTone('game_over.mp3', 311, 1.2, 0.5); // More melodic sad ending
 // Legacy sound for compatibility
 generateTone('line_clear.mp3', 440, 0.3, 0.5); // Same as single clear for backward compatibility
 
-console.log("All catchy sound effects generated!");
+// Generate background music
+generateBackgroundMusic('background_music.mp3', 8, 0.5);
+
+console.log("All sound effects and background music generated!");

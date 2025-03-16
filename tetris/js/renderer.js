@@ -67,8 +67,8 @@ class Renderer {
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         this.ctx.fillRect(0, 0, WIDTH * BLOCK_SIZE, HEIGHT * BLOCK_SIZE);
         
-        // Draw grid lines
-        this.ctx.strokeStyle = 'rgba(50, 50, 50, 0.5)';
+        // Draw grid lines with more visible grey color
+        this.ctx.strokeStyle = 'rgba(150, 150, 150, 0.8)';
         this.ctx.lineWidth = 1;
         
         // Vertical lines
@@ -86,6 +86,11 @@ class Renderer {
             this.ctx.lineTo(WIDTH * BLOCK_SIZE, y * BLOCK_SIZE);
             this.ctx.stroke();
         }
+        
+        // Draw outer border with thicker lines
+        this.ctx.strokeStyle = 'rgba(200, 200, 200, 1)';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(0, 0, WIDTH * BLOCK_SIZE, HEIGHT * BLOCK_SIZE);
         
         // Draw filled blocks
         for (let y = 0; y < HEIGHT; y++) {
@@ -596,7 +601,7 @@ class Renderer {
      * Draw grid lines
      */
     drawGridLines() {
-        this.ctx.strokeStyle = 'rgba(50, 50, 50, 0.5)';
+        this.ctx.strokeStyle = 'rgba(150, 150, 150, 0.8)';
         this.ctx.lineWidth = 1;
         
         // Draw vertical lines
@@ -614,5 +619,10 @@ class Renderer {
             this.ctx.lineTo(CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE, y * CONFIG.GRID.BLOCK_SIZE);
             this.ctx.stroke();
         }
+        
+        // Draw outer border with thicker lines
+        this.ctx.strokeStyle = 'rgba(200, 200, 200, 1)';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(0, 0, CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE, CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE);
     }
 }

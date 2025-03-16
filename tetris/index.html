@@ -72,14 +72,16 @@
                 
                 <!-- Start screen overlay -->
                 <div id="start-screen">
-                    <h2>2D Tetris</h2>
-                    <p>Click Start Game to begin!</p>
-                    <button id="start-game-btn" class="btn btn-primary">Start Game</button>
-                    <div style="margin-top: 20px;">
-                        <button id="enable-audio-btn" class="btn" style="background-color: #4CAF50; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;" onclick="enableAllAudio(); this.textContent = 'Audio Enabled ✓'; this.style.backgroundColor = '#45a049';">▶ Enable Audio</button>
-                        <button id="toggle-music-btn" class="btn" style="background-color: #2196F3; color: white; padding: 10px 20px; margin-left: 10px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;" onclick="toggleBackgroundMusic(this);">▶ Play Music</button>
+                    <div class="start-content">
+                        <h2>2D Tetris</h2>
+                        <p>Click Start Game to begin!</p>
+                        <button id="start-game-btn" class="btn btn-primary">Start Game</button>
+                        <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                            <button id="enable-audio-btn" class="btn" style="background-color: #4CAF50; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;" onclick="enableAllAudio(); this.textContent = 'Audio Enabled ✓'; this.style.backgroundColor = '#45a049';">▶ Enable Audio</button>
+                            <button id="toggle-music-btn" class="btn" style="background-color: #2196F3; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;" onclick="toggleBackgroundMusic(this);">▶ Play Music</button>
+                        </div>
+                        <p style="font-size: 12px; margin-top: 10px;">Click the buttons above to control game audio</p>
                     </div>
-                    <p style="font-size: 12px; margin-top: 10px;">Click the buttons above to control game audio</p>
                 </div>
                 
                 <!-- Game over overlay -->

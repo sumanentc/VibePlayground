@@ -61,6 +61,25 @@ canvas {
     text-align: center;
 }
 
+.start-content {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 30px;
+    border-radius: 10px;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    max-width: 90%;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    }
+    to {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+    }
+}
+
 #start-screen h2, #game-over h2 {
     font-size: 3rem;
     color: #0ff;

@@ -74,8 +74,8 @@ This is a fully-featured 2D Tetris game that offers classic gameplay with modern
 
 1. **Clone the Repository**
    ```
-   git clone https://github.com/yourusername/tetris.git
-   cd tetris
+   git clone https://github.com/sumanentc/VibePlayground.git
+   cd VibePlayground/tetris
    ```
 
 2. **Run a Local Server**
@@ -91,27 +91,6 @@ This is a fully-featured 2D Tetris game that offers classic gameplay with modern
    
    Visit `http://localhost:8000` in your web browser.
 
-## Deploying to GitHub Pages
-
-1. **Create a GitHub Repository**
-   - Create a new repository on GitHub or use an existing one
-   - Push your Tetris game code to the repository
-
-2. **Enable GitHub Pages**
-   - Go to your repository on GitHub
-   - Click on "Settings"
-   - Scroll down to the "GitHub Pages" section
-   - Select the branch you want to deploy (usually `main` or `master`)
-   - Click "Save"
-
-3. **Access Your Game**
-   - After GitHub builds your site, you can access it at:
-     `https://yourusername.github.io/repository-name`
-   - For example: `https://yourusername.github.io/tetris`
-
-4. **Update Game URL**
-   - Once your game is deployed, update the "Play Tetris" link at the top of this README with your actual GitHub Pages URL
-
 ## Technical Details
 
 This Tetris implementation is structured with a modular design that separates concerns into different components:
@@ -126,5 +105,3 @@ This Tetris implementation is structured with a modular design that separates co
 The game uses a main loop to update the game state, handle user input, and render the game board and pieces.
 
 ---
-
-Enjoy the game! Feel free to contribute by opening issues or submitting pull requests.

@@ -864,6 +864,13 @@ class GameManager {
         // Update ghost position for new tetromino
         this.updateGhostPosition();
         
+        // Check if game over - if the newly spawned piece collides immediately
+        if (this.isColliding(this.currentTetromino.x, this.currentTetromino.y, this.currentTetromino.blocks)) {
+            console.log("Game over detected: new piece cannot be placed");
+            this.gameOver();
+            return;
+        }
+        
         // Update UI
         this.updateUI();
         
@@ -989,7 +996,15 @@ class GameManager {
      * End the game
      */
     gameOver() {
+        console.log("GAME OVER triggered!");
+        
+        if (this.isGameOver) {
+            console.log("Game already over, ignoring duplicate call");
+            return; // Prevent duplicate game over calls
+        }
+        
         this.isGameOver = true;
+        this.gameLoopRunning = false;
         
         // Stop the music
         if (typeof audioManager !== 'undefined') {
@@ -998,8 +1013,21 @@ class GameManager {
         }
         
         // Show game over screen
-        document.getElementById('game-over').classList.remove('hidden');
-        document.getElementById('final-score-value').textContent = this.score;
+        const gameOverScreen = document.getElementById('game-over');
+        if (gameOverScreen) {
+            gameOverScreen.classList.remove('hidden');
+            console.log("Game over screen displayed");
+        } else {
+            console.error("Game over screen element not found!");
+        }
+        
+        // Update final score
+        const finalScoreElement = document.getElementById('final-score-value');
+        if (finalScoreElement) {
+            finalScoreElement.textContent = this.score;
+        }
+        
+        console.log(`Game over with final score: ${this.score}`);
     }
 
     /**
@@ -1022,8 +1050,10 @@ class GameManager {
      * Game loop
      */
     gameLoop(time) {
+        // Check if game is over first
         if (this.isGameOver) {
             this.gameLoopRunning = false;
+            console.log("Game loop terminated - game over");
             return;
         }
         
@@ -1033,8 +1063,10 @@ class GameManager {
         // Render
         this.render();
         
-        // Request next frame
-        requestAnimationFrame(this.gameLoop.bind(this));
+        // Request next frame only if game is not over
+        if (!this.isGameOver) {
+            requestAnimationFrame(this.gameLoop.bind(this));
+        }
     }
 
     /**

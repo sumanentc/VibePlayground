@@ -35,11 +35,15 @@ class Renderer {
         const gridHeight = CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE;
         
         // Set minimum width to accommodate full grid width
-        this.canvas.width = Math.max(gridWidth, container.clientWidth);
-        this.canvas.height = Math.max(gridHeight, container.clientHeight);
+        this.canvas.width = Math.max(gridWidth + 100, container.clientWidth);
+        this.canvas.height = Math.max(gridHeight + 100, container.clientHeight);
         
         // Block size based on canvas height
         this.blockSize = CONFIG.GRID.BLOCK_SIZE;
+        
+        // Calculate the starting x position to center the grid
+        this.gridOffsetX = (this.canvas.width - gridWidth) / 2;
+        this.gridOffsetY = (this.canvas.height - gridHeight) / 2;
         
         // Next piece canvas
         this.nextCanvas.width = 100;
@@ -65,7 +69,7 @@ class Renderer {
         
         // Draw grid background
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        this.ctx.fillRect(0, 0, WIDTH * BLOCK_SIZE, HEIGHT * BLOCK_SIZE);
+        this.ctx.fillRect(this.gridOffsetX, this.gridOffsetY, WIDTH * BLOCK_SIZE, HEIGHT * BLOCK_SIZE);
         
         // Draw grid lines with more visible grey color
         this.ctx.strokeStyle = 'rgba(150, 150, 150, 0.8)';
@@ -74,23 +78,23 @@ class Renderer {
         // Vertical lines
         for (let x = 0; x <= WIDTH; x++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(x * BLOCK_SIZE, 0);
-            this.ctx.lineTo(x * BLOCK_SIZE, HEIGHT * BLOCK_SIZE);
+            this.ctx.moveTo(this.gridOffsetX + x * BLOCK_SIZE, this.gridOffsetY);
+            this.ctx.lineTo(this.gridOffsetX + x * BLOCK_SIZE, this.gridOffsetY + HEIGHT * BLOCK_SIZE);
             this.ctx.stroke();
         }
         
         // Horizontal lines
         for (let y = 0; y <= HEIGHT; y++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(0, y * BLOCK_SIZE);
-            this.ctx.lineTo(WIDTH * BLOCK_SIZE, y * BLOCK_SIZE);
+            this.ctx.moveTo(this.gridOffsetX, this.gridOffsetY + y * BLOCK_SIZE);
+            this.ctx.lineTo(this.gridOffsetX + WIDTH * BLOCK_SIZE, this.gridOffsetY + y * BLOCK_SIZE);
             this.ctx.stroke();
         }
         
         // Draw outer border with thicker lines
         this.ctx.strokeStyle = 'rgba(200, 200, 200, 1)';
         this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(0, 0, WIDTH * BLOCK_SIZE, HEIGHT * BLOCK_SIZE);
+        this.ctx.strokeRect(this.gridOffsetX, this.gridOffsetY, WIDTH * BLOCK_SIZE, HEIGHT * BLOCK_SIZE);
         
         // Draw filled blocks
         for (let y = 0; y < HEIGHT; y++) {
@@ -110,8 +114,8 @@ class Renderer {
         const { BLOCK_SIZE, BORDER_WIDTH } = CONFIG.GRID;
         
         // Block coordinates
-        const blockX = x * BLOCK_SIZE;
-        const blockY = y * BLOCK_SIZE;
+        const blockX = this.gridOffsetX + x * BLOCK_SIZE;
+        const blockY = this.gridOffsetY + y * BLOCK_SIZE;
         
         // Save context state
         this.ctx.save();
@@ -191,7 +195,11 @@ class Renderer {
         for (let row = 0; row < blocks.length; row++) {
             for (let col = 0; col < blocks[row].length; col++) {
                 if (blocks[row][col]) {
-                    this.drawBlock(x + col, y + row, color);
+                    const blockY = y + row;
+                    // Only draw blocks that are within the visible grid (y >= 0)
+                    if (blockY >= 0) {
+                        this.drawBlock(x + col, blockY, color);
+                    }
                 }
             }
         }
@@ -391,7 +399,7 @@ class Renderer {
         // Set up clipping to prevent rendering outside the grid
         this.ctx.save();
         this.ctx.beginPath();
-        this.ctx.rect(0, 0, CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE, CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE);
+        this.ctx.rect(this.gridOffsetX, this.gridOffsetY, CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE, CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE);
         this.ctx.clip();
         
         // Draw all particles
@@ -468,8 +476,8 @@ class Renderer {
                     
                     // Only draw blocks in rows 0-2
                     if (posY <= 2 && posY >= 0 && posY < CONFIG.GRID.HEIGHT) {
-                        const blockX = posX * BLOCK_SIZE;
-                        const blockY = posY * BLOCK_SIZE;
+                        const blockX = this.gridOffsetX + posX * BLOCK_SIZE;
+                        const blockY = this.gridOffsetY + posY * BLOCK_SIZE;
                         
                         // Draw a completely flat block, no 3D effects at all
                         this.ctx.fillStyle = color;
@@ -494,8 +502,8 @@ class Renderer {
                         
                         // Only draw ghost blocks in rows 0-2
                         if (posY <= 2 && posY >= 0 && posY < CONFIG.GRID.HEIGHT) {
-                            const blockX = posX * BLOCK_SIZE;
-                            const blockY = posY * BLOCK_SIZE;
+                            const blockX = this.gridOffsetX + posX * BLOCK_SIZE;
+                            const blockY = this.gridOffsetY + posY * BLOCK_SIZE;
                             
                             // Draw with opacity but no 3D effects
                             this.ctx.globalAlpha = CONFIG.UI.GHOST_OPACITY;
@@ -537,8 +545,8 @@ class Renderer {
         // Draw grid background
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         this.ctx.fillRect(
-            0,
-            0,
+            this.gridOffsetX,
+            this.gridOffsetY,
             CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE,
             CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE
         );
@@ -575,17 +583,23 @@ class Renderer {
             }
         }
         
-        // Draw active tetromino
+        // Draw active tetromino if available
         if (activeTetromino) {
             const blocks = activeTetromino.getBlocks();
+            
+            // Draw active tetromino pieces
             for (let row = 0; row < blocks.length; row++) {
                 for (let col = 0; col < blocks[row].length; col++) {
                     if (blocks[row][col]) {
-                        this.drawBlock(
-                            activeTetromino.x + col,
-                            activeTetromino.y + row,
-                            activeTetromino.color
-                        );
+                        const blockY = activeTetromino.y + row;
+                        // Only draw blocks that are within the visible grid (y >= 0)
+                        if (blockY >= 0) {
+                            this.drawBlock(
+                                activeTetromino.x + col,
+                                blockY,
+                                activeTetromino.color
+                            );
+                        }
                     }
                 }
             }
@@ -607,22 +621,22 @@ class Renderer {
         // Draw vertical lines
         for (let x = 0; x <= CONFIG.GRID.WIDTH; x++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(x * CONFIG.GRID.BLOCK_SIZE, 0);
-            this.ctx.lineTo(x * CONFIG.GRID.BLOCK_SIZE, CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE);
+            this.ctx.moveTo(this.gridOffsetX + x * CONFIG.GRID.BLOCK_SIZE, this.gridOffsetY);
+            this.ctx.lineTo(this.gridOffsetX + x * CONFIG.GRID.BLOCK_SIZE, this.gridOffsetY + CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE);
             this.ctx.stroke();
         }
         
         // Draw horizontal lines
         for (let y = 0; y <= CONFIG.GRID.HEIGHT; y++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(0, y * CONFIG.GRID.BLOCK_SIZE);
-            this.ctx.lineTo(CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE, y * CONFIG.GRID.BLOCK_SIZE);
+            this.ctx.moveTo(this.gridOffsetX, this.gridOffsetY + y * CONFIG.GRID.BLOCK_SIZE);
+            this.ctx.lineTo(this.gridOffsetX + CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE, this.gridOffsetY + y * CONFIG.GRID.BLOCK_SIZE);
             this.ctx.stroke();
         }
         
         // Draw outer border with thicker lines
         this.ctx.strokeStyle = 'rgba(200, 200, 200, 1)';
         this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(0, 0, CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE, CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE);
+        this.ctx.strokeRect(this.gridOffsetX, this.gridOffsetY, CONFIG.GRID.WIDTH * CONFIG.GRID.BLOCK_SIZE, CONFIG.GRID.HEIGHT * CONFIG.GRID.BLOCK_SIZE);
     }
 }

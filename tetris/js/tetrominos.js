@@ -6,14 +6,51 @@ class Tetromino {
         this.type = type;
         this.color = CONFIG.COLORS[type];
         this.rotation = 0; // 0, 1, 2, 3 (0, 90, 180, 270 degrees)
-        this.x = Math.floor(CONFIG.GRID.WIDTH / 2) - 1;
-        this.y = -2; // Start above the grid to allow proper falling animation
         
         // Set the shape based on type
         this.shapes = SHAPES[type];
         
         // Get the current rotation of the shape
         this.blocks = this.shapes[this.rotation];
+        
+        // Position the tetromino in the center horizontally
+        const width = this.blocks[0].length;
+        this.x = Math.floor((CONFIG.GRID.WIDTH - width) / 2);
+        
+        // Start position adjusted to show full tetromino
+        // Some shapes (like I and T) need blocks to be above the visible grid initially
+        // Start at row 0 but adjust shapes that would be truncated
+        this.y = -this.getTopEmptyRows(); // This will be negative or 0
+    }
+    
+    /**
+     * Count empty rows at the top of the tetromino shape
+     * This helps position the tetromino so no blocks are truncated
+     */
+    getTopEmptyRows() {
+        let emptyRows = 0;
+        
+        // Check each row from the top
+        for (let row = 0; row < this.blocks.length; row++) {
+            let rowEmpty = true;
+            
+            // Check if this row has any blocks
+            for (let col = 0; col < this.blocks[row].length; col++) {
+                if (this.blocks[row][col]) {
+                    rowEmpty = false;
+                    break;
+                }
+            }
+            
+            // If row is empty, increment counter, otherwise stop counting
+            if (rowEmpty) {
+                emptyRows++;
+            } else {
+                break;
+            }
+        }
+        
+        return emptyRows;
     }
     
     // Get the current shape based on rotation

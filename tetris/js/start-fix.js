@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded', function() { var startScreen = document.getElementById('start-screen'); if(startScreen) { startScreen.style.display = 'flex'; } console.log('Start screen visibility updated'); });

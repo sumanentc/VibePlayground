@@ -77,18 +77,17 @@ class GameManager {
     }
 
     /**
-     * Create empty game grid
+     * Create an empty grid
      */
     createEmptyGrid() {
         this.grid = [];
         
-        // Create 2D grid filled with null values
+        // Create an empty grid filled with nulls
         for (let y = 0; y < CONFIG.GRID.HEIGHT; y++) {
-            const row = [];
+            this.grid[y] = [];
             for (let x = 0; x < CONFIG.GRID.WIDTH; x++) {
-                row.push(null);
+                this.grid[y][x] = null;
             }
-            this.grid.push(row);
         }
     }
 
@@ -118,8 +117,17 @@ class GameManager {
         
         // Ensure tetrominos are at the correct starting position
         if (this.currentTetromino) {
-            this.currentTetromino.x = Math.floor(CONFIG.GRID.WIDTH / 2) - 1;
-            this.currentTetromino.y = -2;
+            const width = this.currentTetromino.blocks[0].length;
+            this.currentTetromino.x = Math.floor((CONFIG.GRID.WIDTH - width) / 2);
+            
+            // Determine the appropriate starting y position that doesn't truncate the shape
+            // Some shapes need to start with blocks above the visible grid (negative y)
+            let topEmptyRows = 0;
+            if (typeof this.currentTetromino.getTopEmptyRows === 'function') {
+                topEmptyRows = this.currentTetromino.getTopEmptyRows();
+            }
+            this.currentTetromino.y = -topEmptyRows; // Will be negative or 0
+            
             this.currentTetromino.rotation = 0;
         }
         
@@ -481,8 +489,24 @@ class GameManager {
      */
     updateGameSpeed() {
         // Calculate drop interval based on level
-        // Formula: speed = initialSpeed * (0.8 - ((level - 1) * 0.007))^(level - 1)
-        this.dropInterval = CONFIG.GAME.INITIAL_FALL_SPEED * Math.pow(0.8 - ((this.level - 1) * 0.007), this.level - 1);
+        // More aggressive formula to make bricks fall faster at higher levels
+        // Use an exponential decrease to make each level significantly faster than the previous
+        
+        // Option 1: Use a more aggressive exponential decay
+        const baseSpeed = CONFIG.GAME.INITIAL_FALL_SPEED;
+        const speedFactor = 0.7; // Lower value = faster drop (was 0.8)
+        const levelAdjustment = 0.015; // Higher value = more speed increase per level (was 0.007)
+        
+        // Modified formula with stronger level impact
+        this.dropInterval = baseSpeed * Math.pow(speedFactor - ((this.level - 1) * levelAdjustment), this.level - 1);
+        
+        // Set a minimum interval to prevent it from becoming too fast to play
+        const minimumInterval = 100; // Milliseconds
+        if (this.dropInterval < minimumInterval) {
+            this.dropInterval = minimumInterval;
+        }
+        
+        console.log(`Level ${this.level}: Drop interval set to ${this.dropInterval}ms`);
     }
 
     /**
@@ -492,10 +516,20 @@ class GameManager {
         // Set current tetromino from next
         this.currentTetromino = this.nextTetromino || createRandomTetromino();
         
-        // Copy properties
-        this.currentTetromino.x = Math.floor(CONFIG.GRID.WIDTH / 2) - 1;
-        this.currentTetromino.y = -2;
-        this.currentTetromino.rotation = this.nextTetromino.rotation;
+        // Position the tetromino in the center horizontally
+        const width = this.currentTetromino.blocks[0].length;
+        this.currentTetromino.x = Math.floor((CONFIG.GRID.WIDTH - width) / 2);
+        
+        // Determine the appropriate starting y position that doesn't truncate the shape
+        // Some shapes need to start with blocks above the visible grid (negative y)
+        let topEmptyRows = 0;
+        if (typeof this.currentTetromino.getTopEmptyRows === 'function') {
+            topEmptyRows = this.currentTetromino.getTopEmptyRows();
+        }
+        this.currentTetromino.y = -topEmptyRows; // Will be negative or 0
+        
+        // Set the rotation
+        this.currentTetromino.rotation = this.nextTetromino ? this.nextTetromino.rotation : 0;
         
         // Generate new next tetromino
         this.nextTetromino = createRandomTetromino();
@@ -551,13 +585,18 @@ class GameManager {
                     const newY = y + row;
                     const newX = x + col;
                     
-                    // Check if outside grid boundaries
-                    if (newX < 0 || newX >= CONFIG.GRID.WIDTH || newY >= CONFIG.GRID.HEIGHT) {
+                    // Check if outside grid horizontal boundaries
+                    if (newX < 0 || newX >= CONFIG.GRID.WIDTH) {
                         return true;
                     }
                     
-                    // Check collision with existing blocks in the grid
-                    // (but allow overlap with empty air above the grid)
+                    // Check if below grid bottom boundary
+                    if (newY >= CONFIG.GRID.HEIGHT) {
+                        return true;
+                    }
+                    
+                    // Only check for collisions with blocks in the grid
+                    // Skip collision detection for blocks above the grid (newY < 0)
                     if (newY >= 0 && this.grid[newY] && this.grid[newY][newX]) {
                         return true;
                     }
@@ -662,16 +701,20 @@ class GameManager {
     }
 
     /**
-     * Hard drop - instantly drop the tetromino to the bottom
+     * Hard drop the current tetromino
      */
     hardDrop() {
-        if (!this.currentTetromino) {
+        console.log("Hard drop triggered"); // Add debugging
+        
+        if (!this.currentTetromino || this.isPaused || this.isGameOver) {
+            console.log("Hard drop aborted - game paused, over, or no tetromino");
             return;
         }
         
         // Move down until collision
         let dropDistance = 0;
-        while (this.moveTetromino(0, 1)) {
+        while (!this.isColliding(this.currentTetromino.x, this.currentTetromino.y + 1, this.currentTetromino.blocks)) {
+            this.currentTetromino.y += 1;
             dropDistance++;
         }
         
@@ -684,7 +727,9 @@ class GameManager {
         }
         
         // Add score for hard drop (2 points per cell dropped)
-        this.addScore(dropDistance * 2);
+        if (dropDistance > 0) {
+            this.addScore(dropDistance * 2);
+        }
     }
 
     /**
@@ -730,8 +775,8 @@ class GameManager {
         }
         
         // Reset position of current tetromino
-        this.currentTetromino.x = Math.floor(CONFIG.GRID.WIDTH / 2) - 1;
-        this.currentTetromino.y = -1; // Start higher to give player more reaction time
+        this.currentTetromino.x = Math.floor(CONFIG.GRID.WIDTH / 2) - Math.floor(this.currentTetromino.blocks[0].length / 2);
+        this.currentTetromino.y = 0; // Start higher to give player more reaction time
         this.currentTetromino.rotation = 0; // Reset rotation
         
         // Make sure blocks is set from shapes based on rotation
@@ -1049,6 +1094,12 @@ class GameManager {
         const keyRepeatDelay = CONFIG.UI.KEY_REPEAT_DELAY;
         const keyRepeatInterval = CONFIG.UI.KEY_REPEAT_INTERVAL;
         
+        // Hard drop (space bar) - only execute once when key is pressed
+        if (this.keys.hardDrop) {
+            this.keys.hardDrop = false; // Reset immediately to prevent repeated hard drops
+            this.hardDrop();
+        }
+        
         // Left movement
         if (this.keys.left) {
             if (!this.keyboardState.initialMoveMade.left) {
@@ -1193,6 +1244,7 @@ class GameManager {
         
         // If we've reached a new level
         if (newLevel > this.level) {
+            const previousLevel = this.level;
             this.level = newLevel;
             
             // Update game speed based on new level
@@ -1202,6 +1254,82 @@ class GameManager {
             if (typeof audioManager !== 'undefined') {
                 audioManager.play('levelUp');
             }
+            
+            // Add visual feedback for level up
+            this.showLevelUpMessage(previousLevel, newLevel);
+        }
+    }
+    
+    /**
+     * Show a message when level increases
+     */
+    showLevelUpMessage(previousLevel, newLevel) {
+        // Create level up notification
+        const levelUpMsg = document.createElement('div');
+        levelUpMsg.className = 'level-up-message';
+        levelUpMsg.innerHTML = `<span>LEVEL UP!</span><br>${previousLevel} → ${newLevel}`;
+        levelUpMsg.style.position = 'absolute';
+        levelUpMsg.style.top = '50%';
+        levelUpMsg.style.left = '50%';
+        levelUpMsg.style.transform = 'translate(-50%, -50%)';
+        levelUpMsg.style.backgroundColor = 'rgba(255, 215, 0, 0.8)';
+        levelUpMsg.style.color = '#000';
+        levelUpMsg.style.padding = '20px 30px';
+        levelUpMsg.style.borderRadius = '10px';
+        levelUpMsg.style.fontSize = '24px';
+        levelUpMsg.style.fontWeight = 'bold';
+        levelUpMsg.style.textAlign = 'center';
+        levelUpMsg.style.zIndex = '1000';
+        levelUpMsg.style.animation = 'levelUpAnimation 2s ease-out';
+        
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes levelUpAnimation {
+                0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+                20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Add to the game container - using the correct ID selector
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            gameContainer.appendChild(levelUpMsg);
+            
+            // Remove after animation completes
+            setTimeout(() => {
+                levelUpMsg.remove();
+                style.remove();
+            }, 2000);
+        } else {
+            console.error('Game container not found');
+        }
+        
+        // Update level display with highlight effect
+        const levelDisplay = document.getElementById('level-value');
+        if (levelDisplay) {
+            levelDisplay.textContent = newLevel;
+            levelDisplay.style.color = '#FFD700'; // Gold color
+            levelDisplay.style.transition = 'color 0.5s';
+            
+            // Reset color after a delay
+            setTimeout(() => {
+                levelDisplay.style.color = '';
+            }, 1500);
+        }
+        
+        // Add a temporary flash effect to the game area
+        const gameCanvas = document.getElementById('game-canvas');
+        if (gameCanvas) {
+            gameCanvas.style.transition = 'filter 0.3s';
+            gameCanvas.style.filter = 'brightness(1.5)';
+            
+            setTimeout(() => {
+                gameCanvas.style.filter = '';
+            }, 300);
         }
     }
 }

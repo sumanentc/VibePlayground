@@ -118,6 +118,8 @@ class UIManager {
             // Ignore keyboard controls when game is over
             if (this.gameManager.isGameOver) return;
             
+            console.log('Key pressed:', event.key, event.code); // Debug key presses
+            
             switch (event.key) {
                 case 'ArrowLeft':
                     this.gameManager.moveTetromino(-1, 0);
@@ -141,6 +143,8 @@ class UIManager {
                     event.preventDefault();
                     break;
                 case ' ':
+                case 'Spacebar': // Some browsers may use 'Spacebar' instead of ' '
+                    console.log('Hard drop triggered from UI');
                     this.gameManager.hardDrop();
                     event.preventDefault();
                     break;

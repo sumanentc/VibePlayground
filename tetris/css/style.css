@@ -15,6 +15,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    overflow: hidden;  /* Ensure the container doesn't scroll */
 }
 
 .game-area {
@@ -23,26 +24,36 @@ body {
     max-width: 1200px;
     width: 100%;
     height: 90vh;
+    overflow: hidden;  /* Hide overflow at this level */
+    align-items: flex-start; /* Align items to the top */
 }
 
 #game-container {
     position: relative;
     flex: 2;
+    width: auto;
     height: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Align at the top */
+    padding-top: 20px; /* Add some top padding */
     overflow: hidden;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+#game-canvas {
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid #555;
+    border-radius: 5px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 /* Canvas styling */
 canvas {
     display: block;
-}
-
-#game-canvas {
-    border: 2px solid #444;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
 /* Start screen and Game over overlays */
@@ -110,11 +121,92 @@ canvas {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     padding: 20px;
+    padding-top: 20px; /* Consistent top padding with game container */
+    padding-right: 15px; /* Increased right padding for scrollbar */
+    margin-top: 0; /* Remove top margin */
     height: 100%;
     max-width: 300px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-left: 1px solid #444;
+    overflow-y: scroll !important; /* Force scrollbar to always show */
+    scrollbar-width: auto !important; /* Use default width for Firefox */
+    scrollbar-color: #888 #333 !important; /* More visible colors for Firefox */
+}
+
+/* Customize scrollbar for webkit browsers (Chrome, Safari, Edge) */
+.sidebar::-webkit-scrollbar {
+    width: 14px !important; /* Wider scrollbar */
+    background-color: #333 !important; /* Dark background for track */
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #333 !important; /* Dark track */
+    border-radius: 0 !important; /* Remove rounded corners */
+    border: 1px solid #444 !important;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: #888 !important; /* Lighter thumb */
+    border-radius: 5px !important;
+    border: 2px solid #333 !important; /* Border matching track */
+    min-height: 40px !important; /* Ensure thumb has a minimum height */
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: #aaa !important; /* Even lighter on hover */
+}
+
+/* Add scrollbar corner styling */
+.sidebar::-webkit-scrollbar-corner {
+    background: #333 !important;
+}
+
+/* Force scrollbar visibility by adding min-height to sidebar content */
+.sidebar::after {
+    content: "";
+    display: block;
+    min-height: 110vh; /* Force content to be taller than container */
+    width: 1px;
+    opacity: 0;
+}
+
+/* Position the stats block at the top */
+.sidebar .info-display:first-child {
+    margin-top: 0;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background-color: rgba(20, 20, 20, 0.95);
+    border: 1px solid #666;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Style the stats text */
+.sidebar .info-display:first-child h3 {
+    color: #FFCC00;
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sidebar .info-display:first-child div {
+    margin: 8px 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#score-value, #level-value, #lines-value {
+    color: #00DDFF;
+    font-size: 18px;
+    text-shadow: 0 0 5px rgba(0, 221, 255, 0.5);
+}
+
+/* Add some extra bottom margin to the first info display to separate it from the rest */
+.sidebar .info-display:nth-child(2) {
+    margin-top: 20px;
 }
 
 /* Info displays */
@@ -122,16 +214,50 @@ canvas {
     background-color: rgba(0, 0, 0, 0.7);
     border: 1px solid #555;
     border-radius: 5px;
-    padding: 10px;
+    padding: 15px;
     margin-bottom: 20px;
     width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .info-display h3 {
     margin-top: 0;
     border-bottom: 1px solid #444;
-    padding-bottom: 5px;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
     color: #00BFFF;
+    font-size: 18px;
+    text-align: center;
+}
+
+.info-display p {
+    margin: 8px 0;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.info-display:last-of-type {
+    max-height: none;
+    overflow-y: visible;
+}
+
+.sidebar .info-display:nth-of-type(3) {
+    background-color: rgba(0, 30, 60, 0.7);
+    border: 1px solid #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+}
+
+.sidebar .info-display:nth-of-type(3) h3 {
+    color: #00DDFF;
+    font-weight: bold;
+}
+
+.sidebar .info-display:nth-of-type(3) p {
+    padding: 8px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.3);
+    margin: 10px 0;
+    font-size: 16px;
 }
 
 .preview-container {
@@ -151,6 +277,10 @@ canvas {
     gap: 10px;
     margin-top: 10px;
     width: 100%;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .btn {
@@ -243,22 +373,62 @@ canvas {
 
 /* Responsive design */
 @media (max-width: 768px) {
+    body {
+        overflow: auto; /* Allow scrolling on mobile */
+    }
+    
+    .container {
+        height: auto;
+        min-height: 100vh;
+        padding: 10px 0;
+        overflow: visible;
+    }
+    
     .game-area {
         flex-direction: column;
         height: auto;
+        padding: 10px;
+        overflow: visible;
     }
     
     .sidebar {
         flex-direction: row;
+        flex-wrap: wrap;
         max-width: 100%;
         height: auto;
-        padding: 10px;
+        min-height: 300px; /* Ensures enough height for scrolling if needed */
+        padding: 20px 10px;
+        justify-content: space-around;
+        overflow-y: visible; /* Let the page scroll instead */
+    }
+    
+    /* Position the stats block properly on mobile */
+    .sidebar .info-display:first-child {
+        position: relative; /* Remove sticky positioning on mobile */
+        top: auto;
+        order: -2; /* Move it to the very top */
+        flex: 0 1 100%; /* Make it full width */
+        margin-bottom: 15px;
     }
     
     .info-display {
-        margin-bottom: 0;
+        margin-bottom: 15px;
         margin-right: 10px;
-        flex: 1;
+        min-width: 200px;
+        flex: 0 1 45%;
+    }
+    
+    /* Make the controls info larger */
+    .info-display:nth-of-type(3) {
+        flex-basis: 100%;
+        order: -1;
+        margin-bottom: 20px;
+        max-width: none;
+    }
+    
+    .info-display p {
+        font-size: 16px;
+        margin: 10px 0;
     }
     
     #game-container {
@@ -271,17 +441,46 @@ canvas {
     }
     
     .controls {
-        flex-wrap: nowrap;
-        overflow-x: auto;
+        flex-wrap: wrap;
+        justify-content: center;
         padding-bottom: 10px;
+        gap: 12px;
+    }
+    
+    .btn {
+        padding: 10px 15px;
+        font-size: 14px;
+        margin: 5px;
+    }
+    
+    .touch-controls {
+        display: flex;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .info-display {
+        flex: 1 1 100%;
+        margin-right: 0;
+    }
+    
+    .info-display h3 {
+        font-size: 16px;
+        padding-bottom: 5px;
+    }
+    
+    .info-display p {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    
+    .controls {
+        gap: 8px;
     }
     
     .btn {
         padding: 8px 12px;
         font-size: 12px;
-    }
-    
-    .touch-controls {
-        display: flex;
     }
 }

@@ -4,7 +4,7 @@
 const CONFIG = {
     // Game dimensions
     GRID: {
-        WIDTH: 28,      // Width of the grid in blocks
+        WIDTH: 10,      // Width of the grid in blocks
         HEIGHT: 20,     // Height of the grid in blocks
         BLOCK_SIZE: 30, // Size of each block in pixels
         BORDER_WIDTH: 2 // Border width for blocks in pixels
@@ -12,13 +12,13 @@ const CONFIG = {
     
     // Game mechanics
     GAME: {
-        INITIAL_FALL_SPEED: 1000,       // Initial time between falls in ms
+        INITIAL_FALL_SPEED: 800,        // Initial time between falls in ms
         SOFT_DROP_MULTIPLIER: 0.2,      // Speed multiplier when soft dropping
         POINTS_PER_LINE: 100,           // Base points for clearing a line
         POINTS_MULTIPLIER_TETRIS: 4,    // Multiplier for clearing 4 lines at once
         POINTS_MULTIPLIER_BACK_TO_BACK: 1.5, // Multiplier for back-to-back line clears
-        LINES_PER_LEVEL: 10,            // Number of lines to clear to level up
-        LEVEL_SPEED_MULTIPLIER: 0.75    // Speed multiplier per level (lower = faster)
+        LINES_PER_LEVEL: 5,             // Number of lines to clear to level up
+        LEVEL_SPEED_MULTIPLIER: 0.7     // Speed multiplier per level (lower = faster)
     },
     
     // Scoring system

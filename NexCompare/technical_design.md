@@ -235,12 +235,11 @@ This document outlines the technical design for NexCompare, a streamlined file c
    - Security implementation
 
 ## Dependencies
-- Three.js (Visualization)
 - React.js (UI Framework)
 - js-yaml (YAML parsing)
-- json-diff (JSON comparison)
+- jsondiff (JSON comparison)
 - diff (Text comparison)
 - Node.js (Backend)
 
 ## Conclusion
-This technical design document provides a comprehensive overview of the file comparison application using Three.js. The modular architecture allows for easy extension and maintenance while providing a powerful visualization tool for comparing various file formats.
+This technical design document provides a comprehensive overview of the NexCompare file comparison application. The modular architecture allows for easy extension and maintenance while providing an intuitive, user-friendly interface for comparing and formatting various file formats with clear, color-highlighted visualization of differences.

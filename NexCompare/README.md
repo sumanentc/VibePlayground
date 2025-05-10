@@ -37,8 +37,10 @@ NexCompare is a modern web application that allows users to compare and format d
 
 4. Open your browser and navigate to:
    ```
-   http://localhost:3030
+   http://localhost:4040
    ```
+
+**Note:** NexCompare is a pure JavaScript/React application with no Python dependencies. All file parsing, comparison, and formatting is handled client-side in the browser.
 
 ## How to Use
 
@@ -65,21 +67,25 @@ NexCompare is a modern web application that allows users to compare and format d
 6. **View Results**: The formatted file will be displayed
 7. **Export**: You can export the formatted content for use elsewhere
 
-## JSON Handling
+## Smart JSON Handling
 
-NexCompare includes smart JSON repair capabilities that can fix common syntax issues:
+NexCompare includes intelligent JSON repair capabilities that automatically fix common syntax issues:
 
-- Automatically adds quotes around unquoted property names
-- Converts single quotes to proper double quotes for string values
-- Removes invalid trailing commas in objects and arrays
+- **Unquoted Property Names**: Automatically adds double quotes around property names (`{property: value}` → `{"property": value}`) 
+- **Single Quote Conversion**: Converts single quotes to proper double quotes for string values (`{'key': 'value'}` → `{"key": "value"}`) 
+- **Trailing Comma Removal**: Removes invalid trailing commas in objects and arrays (`{"key": value,}` → `{"key": value}`) 
+- **Detailed Error Messages**: When repair isn't possible, provides specific error messages that identify which file has issues
 
-This makes the tool more forgiving when dealing with slightly malformed JSON files.
+This smart repair system makes NexCompare much more forgiving when dealing with slightly malformed JSON files, especially those written in JavaScript style without strict JSON syntax.
 
 ## Troubleshooting
 
 - **White Screen**: If you encounter a white screen, try clearing your browser cache or using a different browser
-- **JSON Parse Errors**: If you get JSON parsing errors, check if your JSON is valid or let the application attempt to repair it
-- **Port Issues**: If port 3030 is already in use, you can change the port in the webpack.config.js file
+- **JSON Parse Errors**: If you get JSON parsing errors, check if your JSON is valid or use properly formatted JSON. The application will attempt to repair common issues automatically.
+- **Port Issues**: If port 4040 is already in use, you can change the port in the `webpack.config.js` file
+- **Comparison Not Working**: Ensure both files are of the same format type (both JSON, both YAML, etc.)
+- **Server Starting Issues**: If the webpack dev server fails to start, check that no other process is using the specified port
+- **Development Environment**: This application requires Node.js and npm to run locally. No backend server or additional services are required.
 
 ## License
 
@@ -90,3 +96,30 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Built with React
 - Uses js-yaml for YAML processing
 - Uses diff for generating text differences
+
+## Project Structure
+
+```
+├── src/                    # Source code
+│   ├── components/         # React components
+│   │   ├── Welcome.js      # Welcome screen
+│   │   ├── OperationSelection.js # Operation selection
+│   │   ├── FileTypeSelection.js # File type selection
+│   │   ├── ContentInput.js # Content input component
+│   │   └── Controls.css    # Shared component styles
+│   ├── App.js              # Main application logic
+│   ├── App.css             # Application styles
+│   └── index.js            # Entry point
+├── webpack.config.js       # Webpack configuration
+├── package.json            # Project dependencies
+└── README.md               # Project documentation
+```
+
+## Updates and Changes
+
+### Latest Updates (May 2025)
+- Improved JSON handling with smart repair for common syntax errors
+- Enhanced error messages with specific details
+- Simplified UI with focus on side-by-side and unified comparison views
+- Removed export functionality from comparison results
+- Added comprehensive documentation

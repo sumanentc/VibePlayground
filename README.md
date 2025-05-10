@@ -10,7 +10,9 @@ VibePlayground is a collection of fun and creative games generated using vibe co
 2. **Tetris** : A modern implementation of the classic Tetris game with immersive sound effects.
 
     🔹 Tech Stack: HTML5, CSS, and JavaScript🔹
+3. **NexCompare** : A modern web application that allows users to compare and format different types of files. With intuitive visualization and color-coded differences, NexCompare makes it easy to understand changes between files.
 
+    🔹 Tech Stack: HTML5, CSS, and JavaScript🔹
 
 #### 🌟 Contributing
 Want to add your own vibe-coded games to VibePlayground? Feel free to fork the repo, submit pull requests, and share your creative game ideas! 🚀🎮

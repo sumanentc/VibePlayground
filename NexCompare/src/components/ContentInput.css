@@ -1,0 +1,231 @@
+.content-input-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.content-input-container h2 {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  text-align: center;
+  background: linear-gradient(to right, #1a2a6c, #b21f1f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.input-method-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  gap: 15px;
+}
+
+.method-button {
+  background-color: white;
+  border: 2px solid #1a2a6c;
+  color: #1a2a6c;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.method-button.active {
+  background: linear-gradient(to right, #1a2a6c, #b21f1f);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.method-button:hover:not(.active) {
+  background-color: rgba(26, 42, 108, 0.1);
+}
+
+.input-content {
+  margin-bottom: 40px;
+}
+
+.upload-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+}
+
+.file-drop-area {
+  flex: 1;
+  min-width: 300px;
+  max-width: 550px;
+  height: 300px;
+  border: 2px dashed #aaaaaa;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  position: relative;
+  transition: all 0.3s ease;
+  background-color: #f9f9f9;
+}
+
+.file-drop-area.drag-active {
+  border-color: #1a2a6c;
+  background-color: rgba(26, 42, 108, 0.05);
+}
+
+.file-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.drop-message {
+  cursor: pointer;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.drop-message p {
+  color: #555;
+  font-size: 1.1rem;
+}
+
+.file-preview {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.file-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 15px;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.file-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.file-size {
+  color: #777;
+}
+
+.file-content-preview {
+  width: 100%;
+  background-color: #2d2d2d;
+  color: #f8f8f2;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.file-content-preview pre {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+}
+
+.change-file-btn {
+  background-color: #555;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.change-file-btn:hover {
+  background-color: #333;
+}
+
+.paste-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+}
+
+.content-input-area {
+  flex: 1;
+  min-width: 300px;
+  max-width: 550px;
+}
+
+.content-input-area label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.content-input-area textarea {
+  width: 100%;
+  height: 300px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  resize: none;
+  background-color: #f9f9f9;
+  transition: border-color 0.3s ease;
+}
+
+.content-input-area textarea:focus {
+  border-color: #1a2a6c;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 42, 108, 0.2);
+}
+
+.submit-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.submit-button {
+  background: linear-gradient(to right, #1a2a6c, #b21f1f);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 30px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
+}
+
+.submit-button:disabled {
+  background: linear-gradient(to right, #888, #999);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

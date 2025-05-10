@@ -1,0 +1,115 @@
+.file-type-selection-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.file-type-selection-container h2 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  background: linear-gradient(to right, #1a2a6c, #b21f1f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.file-type-selection-container .description {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 30px;
+}
+
+.file-types {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.file-type-card {
+  flex: 1;
+  min-width: 300px;
+  max-width: 350px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 25px;
+}
+
+.file-type-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.file-type-icon {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+  margin-bottom: 15px;
+}
+
+.file-type-icon span {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.file-type-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #1a2a6c;
+}
+
+.file-type-card p {
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.file-type-info {
+  background-color: #f7f9fc;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.file-type-info h4 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.code-example {
+  background-color: #2d2d2d;
+  color: #f8f8f2;
+  padding: 15px;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.select-button {
+  background: linear-gradient(to right, #1a2a6c, #b21f1f);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  width: 100%;
+}
+
+.select-button:hover {
+  transform: scale(1.03);
+}

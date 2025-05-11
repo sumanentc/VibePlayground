@@ -56,6 +56,19 @@ function App() {
   const handleGetStarted = () => {
     setCurrentStep('operation-selection');
   };
+  
+  // Handle going back to previous step
+  const handleGoBack = () => {
+    if (currentStep === 'content-input') {
+      // If we came from operation-selection with a quick template, go back there
+      if (selectedOperation && selectedOperation.startsWith('quick-')) {
+        setCurrentStep('operation-selection');
+      } else {
+        // Otherwise go back to file-type-selection
+        setCurrentStep('file-type-selection');
+      }
+    }
+  };
 
   const handleOperationSelect = (operation) => {
     setSelectedOperation(operation);
@@ -180,11 +193,35 @@ function App() {
   const processFormatting = (content, fileType) => {
     try {
       let formatted;
+      let errorInfo = null;
       
       switch (fileType) {
         case 'yaml':
-          const parsedYaml = jsyaml.load(content);
-          formatted = jsyaml.dump(parsedYaml, { indent: 2 });
+          try {
+            const parsedYaml = jsyaml.load(content);
+            formatted = jsyaml.dump(parsedYaml, { indent: 2 });
+          } catch (yamlError) {
+            // Try to extract line number from YAML error message
+            const lineMatch = yamlError.message.match(/line (\d+)/);
+            const columnMatch = yamlError.message.match(/column (\d+)/);
+            const line = lineMatch ? parseInt(lineMatch[1]) : null;
+            const column = columnMatch ? parseInt(columnMatch[1]) : null;
+            
+            const contentLines = content.split('\n');
+            const errorLine = line !== null && line - 1 < contentLines.length ? contentLines[line - 1] : null;
+            
+            errorInfo = {
+              message: yamlError.message,
+              line: line,
+              column: column,
+              errorLineContent: errorLine,
+              type: 'yaml'
+            };
+            
+            // Still provide the original content for display
+            formatted = content;
+            throw yamlError;
+          }
           break;
         case 'json':
           try {
@@ -194,10 +231,56 @@ function App() {
               throw new Error('Input does not appear to be valid JSON. JSON must start with { or [');
             }
             
-            // Use repair function to handle common JSON syntax issues
-            const parsedJson = attemptJSONRepair(trimmedContent);
-            formatted = JSON.stringify(parsedJson, null, 2);
+            try {
+              // Use repair function to handle common JSON syntax issues
+              const parsedJson = attemptJSONRepair(trimmedContent);
+              formatted = JSON.stringify(parsedJson, null, 2);
+            } catch (jsonRepairError) {
+              // If repair fails, try to identify the problematic line
+              let line = 0;
+              let column = 0;
+              let errorLine = null;
+              
+              // Look for line and column information in the error message
+              const lineColMatch = jsonRepairError.message.match(/line (\d+) column (\d+)/);
+              if (lineColMatch) {
+                line = parseInt(lineColMatch[1]);
+                column = parseInt(lineColMatch[2]);
+              } else {
+                // Otherwise calculate based on position
+                const errorMatch = jsonRepairError.message.match(/position (\d+)/);
+                let position = errorMatch ? parseInt(errorMatch[1]) : 0;
+                
+                const contentBeforeError = trimmedContent.substring(0, position);
+                const linesBeforeError = contentBeforeError.split('\n');
+                line = linesBeforeError.length;
+                column = linesBeforeError[linesBeforeError.length - 1].length + 1;
+              }
+              
+              const contentLines = trimmedContent.split('\n');
+              errorLine = line > 0 && line <= contentLines.length ? contentLines[line - 1] : null;
+              
+              errorInfo = {
+                message: jsonRepairError.message,
+                line: line,
+                column: column,
+                errorLineContent: errorLine,
+                type: 'json'
+              };
+              
+              // Still provide the original content for display
+              formatted = content;
+              throw jsonRepairError;
+            }
           } catch (jsonError) {
+            if (!errorInfo) {
+              // Generic error handling if we couldn't extract position information
+              errorInfo = {
+                message: jsonError.message,
+                type: 'json'
+              };
+            }
+            formatted = content;
             throw new Error(`JSON parsing error: ${jsonError.message}`);
           }
           break;
@@ -209,13 +292,29 @@ function App() {
       setFormattedContent({
         original: content,
         formatted,
-        fileType
+        fileType,
+        errorInfo: null // No errors
       });
       
       setCurrentStep('format-result');
     } catch (error) {
       console.error('Error formatting file:', error);
-      alert(`Error formatting file: ${error.message}`);
+      
+      // Instead of just showing an alert, we'll display the file with error highlighting
+      // Create error info object to highlight problematic lines
+      let errorDetails = {
+        message: error.message,
+        type: fileType
+      };
+      
+      setFormattedContent({
+        original: content,
+        formatted: content, // Keep the original content for display
+        fileType,
+        errorInfo: errorDetails // Direct assignment without using local errorInfo variable
+      });
+      
+      setCurrentStep('format-result');
     }
   };
 
@@ -311,6 +410,7 @@ function App() {
           operation={selectedOperation}
           fileType={selectedFileType}
           onContentSubmit={handleContentSubmit}
+          onGoBack={handleGoBack}
         />;
       
       case 'comparison-result':
@@ -412,11 +512,50 @@ function App() {
           <div className="result-container">
             <div className="result-header">
               <h2>{selectedFileType.toUpperCase()} Formatting Results</h2>
+              {formattedContent && formattedContent.errorInfo && (
+                <div className="error-notification">
+                  <p className="error-message">Error: {formattedContent.errorInfo.message}</p>
+                  {formattedContent.errorInfo.line && (
+                    <p className="error-location">
+                      Problem detected at line {formattedContent.errorInfo.line}
+                      {formattedContent.errorInfo.column ? `, column ${formattedContent.errorInfo.column}` : ''}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="result-content">
               <div className="format-result-view">
-                <pre>{formattedContent.formatted}</pre>
+                {formattedContent && formattedContent.errorInfo ? (
+                  <pre>
+                    {formattedContent.formatted.split('\n').map((line, index) => {
+                      const isErrorLine = 
+                        formattedContent.errorInfo.line && 
+                        formattedContent.errorInfo.line === index + 1;
+                      
+                      return (
+                        <div 
+                          key={index} 
+                          className={isErrorLine ? 'error-line' : ''}
+                          title={isErrorLine ? formattedContent.errorInfo.message : ''}
+                        >
+                          <span className="line-number">{index + 1}</span>
+                          <span className="line-content">{line}</span>
+                        </div>
+                      );
+                    })}
+                  </pre>
+                ) : (
+                  <pre>
+                    {formattedContent && formattedContent.formatted.split('\n').map((line, index) => (
+                      <div key={index}>
+                        <span className="line-number">{index + 1}</span>
+                        <span className="line-content">{line}</span>
+                      </div>
+                    ))}
+                  </pre>
+                )}
               </div>
             </div>
             

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import './ContentInput.css';
 
-function ContentInput({ operation, fileType, onContentSubmit }) {
+function ContentInput({ operation, fileType, onContentSubmit, onGoBack }) {
   const [inputMethod, setInputMethod] = useState('upload');
   const [files, setFiles] = useState({ file1: null, file2: null });
   const [contents, setContents] = useState({ content1: '', content2: '' });
@@ -142,7 +142,9 @@ function ContentInput({ operation, fileType, onContentSubmit }) {
 
   return (
     <div className="content-input-container">
-      <h2>{operation === 'compare' ? 'Compare' : 'Format'} {fileType.toUpperCase()} {operation === 'compare' ? 'Files' : 'File'}</h2>
+      <div className="header-section">
+        <h2>{operation === 'compare' ? 'Compare' : 'Format'} {fileType.toUpperCase()} {operation === 'compare' ? 'Files' : 'File'}</h2>
+      </div>
       
       <div className="input-method-selector">
         <button 
@@ -174,6 +176,11 @@ function ContentInput({ operation, fileType, onContentSubmit }) {
       </div>
       
       <div className="submit-section">
+        {onGoBack && (
+          <button className="back-button" onClick={onGoBack}>
+            <span className="back-arrow">←</span> Back
+          </button>
+        )}
         <button 
           className="submit-button"
           onClick={handleSubmit}

@@ -12,6 +12,8 @@ NexCompare is a modern web application that allows users to compare and format d
 
 ## Getting Started
 
+### App is available at : https://nex-compare.vercel.app/
+
 ### Prerequisites
 
 - Node.js (version 14 or higher)

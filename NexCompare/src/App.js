@@ -67,6 +67,12 @@ function App() {
         // Otherwise go back to file-type-selection
         setCurrentStep('file-type-selection');
       }
+    } else if (currentStep === 'format-result') {
+      // Go back to content input from format result
+      setCurrentStep('content-input');
+    } else if (currentStep === 'comparison-result') {
+      // Go back to content input from comparison result
+      setCurrentStep('content-input');
     }
   };
 
@@ -502,7 +508,12 @@ function App() {
             </div>
             
             <div className="result-footer">
-              <button className="reset-button" onClick={handleReset}>Start New Comparison</button>
+              <div className="button-group">
+                <button className="back-button" onClick={handleGoBack}>
+                  <span className="back-arrow">←</span> Back
+                </button>
+                <button className="reset-button" onClick={handleReset}>Start New Comparison</button>
+              </div>
             </div>
           </div>
         );
@@ -560,22 +571,27 @@ function App() {
             </div>
             
             <div className="result-footer">
-              <button className="copy-button" onClick={() => {
-                navigator.clipboard.writeText(formattedContent.formatted);
-                alert('Formatted content copied to clipboard!');
-              }}>Copy to Clipboard</button>
-              <button className="download-button" onClick={() => {
-                const blob = new Blob([formattedContent.formatted], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `formatted.${selectedFileType}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-              }}>Download</button>
-              <button className="reset-button" onClick={handleReset}>Format Another File</button>
+              <div className="button-group">
+                <button className="back-button" onClick={handleGoBack}>
+                  <span className="back-arrow">←</span> Back
+                </button>
+                <button className="copy-button" onClick={() => {
+                  navigator.clipboard.writeText(formattedContent.formatted);
+                  alert('Formatted content copied to clipboard!');
+                }}>Copy to Clipboard</button>
+                <button className="download-button" onClick={() => {
+                  const blob = new Blob([formattedContent.formatted], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `formatted.${selectedFileType}`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }}>Download</button>
+                <button className="reset-button" onClick={handleReset}>Format Another File</button>
+              </div>
             </div>
           </div>
         );
